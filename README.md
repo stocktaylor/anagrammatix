@@ -1,27 +1,22 @@
-# Anagrammatix
-
-### UPDATE:
-
-This repo is no longer maintained, and is quite old. A fork has been created at: https://github.com/InsomniacSabbir/anagrammatix that includes a leaderboard.
-
+# Unnamed TV-Phone Game
 A multi-player, multi-screen game built to experiment with Socket.IO and Node.js.
 
 
 ## To Install
 
 1. Ensure Node.js is installed
-2. Clone this repository - `git clone https://github.com/ericterpstra/anagrammatix.git`
+2. Clone this repository - `git clone https://github.com/stocktaylor/phoneTVGame.git`
 3. Install the dependences:
-    1. `cd anagrammatix`
+    1. `cd phoneTVGame`
     2. `npm install`
 4. Start the server: `node index.js`
-5. Visit http://127.0.0.1:8080 in a browser and click CREATE.
+5. Visit http://localhost:8080 in a browser and click CREATE.
 
 ## To Play
 
 ### Setup
 1. Ensure 3 devices are on a local network, or that the application server is accessable by 3 devices.
-2. Start the Anagrammatix application
+2. Start the application
 3. Visit http://your.ip.address:8080 on a PC, Tablet, SmartTV or other large screen device
 4. Click CREATE
 5. On a mobile device, visit http://your.ip.address:8080
