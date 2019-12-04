@@ -7,8 +7,8 @@ const path = require('path');
 // Create a new instance of Express
 const app = express();
 
-// Import the Anagrammatix game file.
-const agx = require('./agxgame');
+// Import the phoneTVGame game file.
+const agx = require('./phoneTVGame');
 
 // Create a simple Express application
 app.configure(function() {

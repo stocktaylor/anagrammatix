@@ -1,5 +1,5 @@
 {
-  "name": "Anagrammatix",
+  "name": "phoneTVGame",
   "description": "Anagram Multiplayer Game",
   "version": "0.1.0",
   "private": true,
@@ -15,12 +15,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ericterpstra/anagrammatix.git"
+    "url": "https://github.com/stocktaylor/phoneTVGame.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/ericterpstra/anagrammatix/issues"
+    "url": "https://github.com/stocktaylor/phoneTVGame/issues"
   },
-  "homepage": "https://github.com/ericterpstra/anagrammatix"
+  "homepage": "https://github.com/stocktaylor/phoneTVGame"
 }

@@ -42,8 +42,6 @@ var App = {
      * Create references to on-screen elements used throughout the game.
      */
     cacheElements: () => {
-        App.$doc = $(document);
-
         // Templates
         App.gameArea = document.getElementById(`gameArea`);
         App.templateIntroScreen = document.getElementById(`intro-screen-template`).innerHTML;
@@ -71,7 +69,7 @@ var App = {
      * *********************************** */
 
     /**
-     * Show the initial Anagrammatix Title Screen
+     * Show the initial phoneTVGame Title Screen
      * (with Start and Join buttons)
      */
     showInitScreen: () => {
