@@ -8,7 +8,8 @@ Dark Purple : #A22FB0
 */
 
 html, body {
-    background-color: #78BD4C;
+    background-image: url("../img/beanstalk-dark.png");
+    background-repeat: repeat;
     height: 100%;
     width: 100%;
     margin: 0;
@@ -38,6 +39,7 @@ html, body {
     vertical-align: middle;
     cursor: pointer;
     border: 1px solid transparent;
+    border-radius: 3px;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;

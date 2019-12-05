@@ -135,6 +135,7 @@ var App = {
             App.gameArea.innerHTML = App.templateNewGame;
 
             // Display the URL on screen
+            //ToDo: API to get the hostname/url of the server
             $('#gameURL').text(window.location.href);
             App.doTextFit('#gameURL');
 

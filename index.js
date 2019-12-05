@@ -8,7 +8,7 @@ const path = require('path');
 const app = express();
 
 // Import the phoneTVGame game file.
-const agx = require('./phoneTVGame');
+const ptg = require('./phoneTVGame');
 
 // Create a simple Express application
 app.configure(function() {
@@ -16,7 +16,7 @@ app.configure(function() {
     app.use(express.logger('dev'));
 
     // Serve static html, js, css, and image files from the 'public' directory
-    app.use(express.static(path.join(__dirname,'public')));
+    app.use(express.static(path.join(__dirname,'frontend')));
 });
 
 // Create a Node.js based http server on port 8080
@@ -30,7 +30,5 @@ io.set('log level',1);
 
 // Listen for Socket.IO Connections. Once connected, start the game logic.
 io.sockets.on('connection', function (socket) {
-    agx.initGame(io, socket);
+    ptg.initGame(io, socket);
 });
-
-
