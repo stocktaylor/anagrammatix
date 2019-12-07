@@ -16,6 +16,7 @@ var IO = {
     bindEvents : () => {
         IO.socket.on('connected', IO.onConnected );
         IO.socket.on('newGameCreated', IO.onNewGameCreated );
+        IO.socket.on(`stateRefresh`, IO.stateRefresh);
         IO.socket.on('playerJoinedRoom', IO.playerJoinedRoom );
         IO.socket.on('beginNewGame', IO.beginNewGame );
         IO.socket.on('newWordData', IO.onNewWordData);
@@ -39,6 +40,10 @@ var IO = {
      */
     onNewGameCreated : (data) => {
         App.Host.gameInit(data);
+    },
+
+    stateRefresh : (data) => {
+        console.log(data);
     },
 
     /**

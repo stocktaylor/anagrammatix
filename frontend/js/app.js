@@ -1,5 +1,40 @@
 var App = {
 
+    listeners : {
+        pageResize: () => {
+            window.onresize = () =>{
+                App.doTextFit('.title');
+                App.doTextFit('#gameURL');
+                App.doTextFit('#hostWord');
+            }
+        },
+        settingsClick: () => {
+            document.getElementById(`settingsButton`).addEventListener(`click`, () => {
+                alert(`ToDo: Settings Menu`);
+            });
+        }
+    },
+
+    initListeners: () => {
+        for(const key in App.listeners) {
+            let thisListener = App.listeners[key];
+
+            if(App.hlpFn.isFunction(thisListener)) {
+                thisListener();
+            }
+        }
+    },
+
+    hlpFn: {
+        isUndefined: (chk) => {
+            return typeof chk == `undefined`
+        },
+
+        isFunction: (chk) => {
+            return typeof chk == `function`;
+        }
+    },
+
     /**
      * Keep track of the gameId, which is identical to the ID
      * of the Socket.IO Room used for the players and host to communicate
@@ -19,6 +54,8 @@ var App = {
      */
     mySocketId: '',
 
+    
+
     /**
      * Identifies the current round. Starts at 0 because it corresponds
      * to the array of word data stored on the server.
@@ -33,6 +70,7 @@ var App = {
      * This runs when the page initially loads.
      */
     init: () => {
+        App.initListeners();
         App.cacheElements();
         App.showInitScreen();
         App.bindEvents();
@@ -105,6 +143,8 @@ var App = {
          */
         currentCorrectAnswer: '',
 
+        playerIndexToCard: [`controllerCard`, `player1Card`, `player2Card`, `player3Card`, `player4Card`, `player5Card`],
+
         /**
          * Handler for the "Start" button on the Title Screen.
          */
@@ -149,26 +189,26 @@ var App = {
          */
         updateWaitingScreen: (data) => {
             // If this is a restarted game, show the screen.
+            console.log(data);
+            console.log(`hello there`);
             if ( App.Host.isNewGame ) {
                 App.Host.displayNewGameScreen();
             }
-            // Update host screen
-            $('#playersWaiting')
-                .append('<p/>')
-                .text('Player ' + data.playerName + ' joined the game.');
 
             // Store the new player's data on the Host.
-            App.Host.players.push(data);
+            App.Host.players = data.game.players;
 
             // Increment the number of players in the room
-            App.Host.numPlayersInRoom += 1;
+            App.Host.numPlayersInRoom = data.game.players.length;
 
-            // If two players have joined, start the game!
-            if (App.Host.numPlayersInRoom === 2) {
-                // console.log('Room is full. Almost ready!');
+            for(let i = 0; i < App.Host.playerIndexToCard.length; i++) {
+                console.log(App.Host.playerIndexToCard[i]);
+                console.log(document.getElementById(App.Host.playerIndexToCard[i]).childNodes);
+                document.getElementById(App.Host.playerIndexToCard[i]).childNodes[1].innerHTML = `Waiting for players to join...`;
+            }
 
-                // Let the server know that two players are present.
-                IO.socket.emit('hostRoomFull',App.gameId);
+            for(let i = 0; i < data.game.players.length; i++) {
+                document.getElementById(App.Host.playerIndexToCard[i]).childNodes[1].innerHTML = data.game.players[i].playerName;
             }
         },
 

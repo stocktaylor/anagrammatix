@@ -1,15 +1,17 @@
 /*
 
- Dark Green : #78BD4C
-  Mid Green : #A8FF56
-       Lite : #ECFFE0
-Dark Purple : #A22FB0
+ Dark Red: #9c0a00
+  Mid Red : #c40d00
+       Lite : #d9d9d9
+Dark Orange : #de8900
 
 */
 
 html, body {
-    background-image: url("../img/beanstalk-dark.png");
+    background-image: url("../img/triangular_@2X.png");
     background-repeat: repeat;
+    background-attachment: fixed;
+    background-position: center;
     height: 100%;
     width: 100%;
     margin: 0;
@@ -22,19 +24,29 @@ html, body {
               BUTTONS!
      (Inspired by Bootstrap 3.0)
    ****************************** */
+#settingsButton {
+    height: 6vh;
+    width: 14vh;
+    font-size: 4vh;
+    padding: 2vh;
+    font-family: "Lato";
+    font-weight: 800;
+    opacity: 0.02;
+}
+
 
 .btn {
     display: inline-block;
     height: 100%;
     width: 49%;
     margin-bottom: 0;
-    color: #ECFFE0;
+    color: #d9d9d9;
     font-family: 'Quicksand', sans-serif;
     font-weight: 700;
     font-size: 2em;
     line-height: 1.2;
     text-align: center;
-    background-color: #8AD453;
+    background-color: #9c0a00;
     white-space: nowrap;
     vertical-align: middle;
     cursor: pointer;
@@ -55,8 +67,8 @@ html, body {
 
 .btn:hover,
 .btn:focus {
-    color: #AE37B2;
     text-decoration: none;
+    box-shadow: 0px 0px 10px 2px #c40d00;
 }
 
 .btn:active,
@@ -85,8 +97,8 @@ html, body {
 }
 
 .titleWrapper {
-    font-family: 'Quicksand', sans-serif;
-    font-weight: 400;
+    font-family: "Lato";
+    font-weight: 800;
     position: absolute;
     height: 50%;
     width: 96%;
@@ -101,9 +113,10 @@ html, body {
     margin: 0px auto;
     text-align: center;
     width: 100%;
-    font-family: 'Quicksand', sans-serif;
-    color: #ECFFE0;
-    font-weight: 300;
+    font-family: "Lato";
+    font-weight: 800;
+    color: #d9d9d9;
+    padding-bottom: 4%;
 }
 
 .buttons {
@@ -123,14 +136,14 @@ html, body {
 }
 
 .createGameWrapper .info{
-    color: #ECFFE0;
+    color: #d9d9d9;
     font-weight: 400;
     font-size: 2em;
     margin-top: 1.5em;
 }
 
 .createGameWrapper{
-    color: #AE37B2;
+    color: #c40d00;
     font-weight: 300;
 }
 
@@ -144,7 +157,7 @@ html, body {
     width: 200px;
     height: 60px;
     font-family: 'Quicksand', sans-serif;
-    color: #A22FB0;
+    color: #de8900;
     font-weight: 300;
     font-size: 54px;
     border: 1px dotted white;
@@ -156,6 +169,47 @@ html, body {
     width: 90%;
 }
 
+#centerContent {
+    width: 100%;
+    padding-top: 50px;
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+}
+
+#controllerCard {
+    background-color: black;
+    color: white;
+}
+
+.playerCard {
+    background-color: white;
+    color: black;
+}
+
+#dummyHeightCard {
+    padding-top: 17%;
+    width: 1px;
+}
+
+
+.card {
+    width: 100%;
+    margin-left: 2%;
+    margin-right: 2%;
+    border-radius: 5%;
+    justify-content: flex-start;
+    align-items: flex-start;
+    font-size: 1.25vw;
+    text-align: left;
+    font-family: "Lato";
+    font-weight: 800;
+    box-shadow: 10px 10px 5px grey;
+}
+
+.cardText {
+    padding: 1vw;
+}
 
 /* ******************************
            JOIN SCREEN
@@ -171,7 +225,7 @@ html, body {
 
 .joinGameWrapper .info {
     font-size: 1.5em;
-    color: #ECFFE0;
+    color: #d9d9d9;
     height: 30%;
     padding-top: 1%;
 }
@@ -192,8 +246,6 @@ html, body {
 .createGameWrapper .gameId {
     font-size: 8em;
 }
-
-
 
 /* ******************************
           PLAYER GAME SCREEN
@@ -218,7 +270,7 @@ html, body {
     border-bottom: 1px dotted white;
     font-weight: 400;
     font-size: 3em;
-    color: #AE37B2;
+    color: #de8900;
 }
 
 
@@ -283,12 +335,12 @@ html, body {
 
 .playerScore .score {
     text-align: center;
-    background-color: #A8FF56;
+    background-color: #c40d00;
 }
 
 .playerScore .playerName {
     width: 77%;
-    background-color: #ECFFE0;
+    background-color: #d9d9d9;
 }
 
 #player1Score {

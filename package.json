@@ -5,6 +5,8 @@
   "private": true,
   "dependencies": {
     "express": "3.x",
+    "graceful-fs": "^4.2.3",
+    "node-logger": "0.0.1",
     "socket.io": "0.9"
   },
   "main": "index.js",
