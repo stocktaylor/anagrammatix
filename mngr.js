@@ -1,6 +1,9 @@
 // Import the phoneTVGame game file.
 const ptg = require('./phoneTVGame');
 
+//import cardHandler
+const cardHandler = require(`./cardHandler`);
+
 //Import graceful-fs module
 const fs = require(`graceful-fs`);
 
@@ -20,8 +23,11 @@ exports.init = () => {
                     // for(globalVarKey in globalVarKeys) {
                           
                     // }
-
-                    resolve();
+                    cardHandler.init().then(() => {
+                        resolve();
+                    }).catch((reason) => {
+                        reject(reason);
+                    });
                 }
             });
         } catch(err) {
@@ -35,6 +41,13 @@ exports.ptg = () => {
     return ptg;
 }
 
+exports.fs = () => {
+    return fs;
+}
+
+exports.cardHandler = () => {
+    return cardHandler;
+}
 
 
 

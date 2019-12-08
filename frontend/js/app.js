@@ -85,6 +85,7 @@ var App = {
         App.templateIntroScreen = document.getElementById(`intro-screen-template`).innerHTML;
         App.templateNewGame = document.getElementById(`create-game-template`).innerHTML;
         App.templateJoinGame = document.getElementById(`join-game-template`).innerHTML;
+        App.templateWaitStart = document.getElementById(`wait-start-template`).innerHTML
         App.hostGame = document.getElementById(`host-game-template`).innerHTML;
     },
 
@@ -97,7 +98,8 @@ var App = {
 
         // Player
         domHelper.clickID(`btnJoinGame`, App.Player.onJoinClick);
-        domHelper.clickID(`btnStart`, App.Player.onPlayerStartClick);
+        domHelper.clickID(`btnJoin`, App.Player.onPlayerStartClick);
+        domHelper.clickID(`btnStart`, App.Player.leaderStartGame);
         domHelper.clickClass(`btnAnswer`, App.Player.onPlayerAnswerClick);
         domHelper.clickID(`btnPlayerRestart`, App.Player.onPlayerRestart);
     },
@@ -150,7 +152,7 @@ var App = {
          */
         onCreateClick: () => {
             // console.log('Clicked "Create A Game"');
-            IO.socket.emit('hostCreateNewGame');
+            IO.socket.emit('hostCreateNewGame', App.mySocketId);
         },
 
         /**
@@ -187,10 +189,8 @@ var App = {
          * Update the Host screen when the first player joins
          * @param data{{playerName: string}}
          */
-        updateWaitingScreen: (data) => {
+        updateWaitingScreen: (action, data) => {
             // If this is a restarted game, show the screen.
-            console.log(data);
-            console.log(`hello there`);
             if ( App.Host.isNewGame ) {
                 App.Host.displayNewGameScreen();
             }
@@ -202,13 +202,11 @@ var App = {
             App.Host.numPlayersInRoom = data.game.players.length;
 
             for(let i = 0; i < App.Host.playerIndexToCard.length; i++) {
-                console.log(App.Host.playerIndexToCard[i]);
-                console.log(document.getElementById(App.Host.playerIndexToCard[i]).childNodes);
                 document.getElementById(App.Host.playerIndexToCard[i]).childNodes[1].innerHTML = `Waiting for players to join...`;
             }
 
             for(let i = 0; i < data.game.players.length; i++) {
-                document.getElementById(App.Host.playerIndexToCard[i]).childNodes[1].innerHTML = data.game.players[i].playerName;
+                document.getElementById(App.Host.playerIndexToCard[i]).childNodes[1].innerHTML = data.game.players[i].playerName + (data.game.players[i].connected ? `` : ` (Disconnected)`);
             }
         },
 
@@ -372,6 +370,7 @@ var App = {
             // collect data to send to the server
             console.log(`lets get this party started`);
             var data = {
+                playerId: App.mySocketId,
                 gameId : ($('#inputGameId').val()),
                 playerName : $('#inputPlayerName').val() || 'anon'
             };
@@ -382,6 +381,11 @@ var App = {
             // Set the appropriate properties for the current player.
             App.myRole = 'Player';
             App.Player.myName = data.playerName;
+        },
+
+        leaderStartGame: () => {
+            alert(`start game!`);
+            IO.socket.emit(`leaderStartGame`, {gameId: App.gameId});
         },
 
         /**
@@ -421,14 +425,28 @@ var App = {
          * Display the waiting screen for player 1
          * @param data
          */
-        updateWaitingScreen : (data) => {
-            if(IO.socket.socket.sessionid === data.mySocketId){
-                App.myRole = 'Player';
-                App.gameId = data.gameId;
-
-                $('#playerWaitingMessage')
-                    .append('<p/>')
-                    .text('Joined Game ' + data.gameId + '. Please wait for game to begin.');
+        updateWaitingScreen : (action, data) => {
+            alert(`update waiting screen!`);
+            if(data.playerChanged == App.Player.myName) {
+                App.gameId = data.game.gameId;
+                App.gameArea.innerHTML = App.templateWaitStart;
+                document.getElementById(`wait-start-player-name`).innerHTML = App.Player.myName;
+            }
+            if(!document.getElementById(`btnStart`).classList.contains(`hidden`))document.getElementById(`btnStart`).classList.add(`hidden`);
+            if(data.game.players.length > 0 && data.game.players[0].id == IO.socket.socket.sessionid) {
+                if(document.getElementById(`btnStart`).classList.contains(`hidden`)){
+                    document.getElementById(`btnStart`).classList.remove(`hidden`);
+                    App.bindEvents();
+                }
+                if(data.game.players.length >= 3) {
+                    if(document.getElementById(`btnStart`).classList.contains(`disabled`)){
+                        document.getElementById(`btnStart`).classList.remove(`disabled`);
+                    }
+                } else {
+                    if(!document.getElementById(`btnStart`).classList.contains(`disabled`)){
+                        document.getElementById(`btnStart`).classList.add(`disabled`);
+                    }
+                }
             }
         },
 

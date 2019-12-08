@@ -18,6 +18,7 @@ var IO = {
         IO.socket.on('newGameCreated', IO.onNewGameCreated );
         IO.socket.on(`stateRefresh`, IO.stateRefresh);
         IO.socket.on('playerJoinedRoom', IO.playerJoinedRoom );
+        IO.socket.on(`clientDisconnectFromRoom`, IO.clientDisconnectFromRoom);
         IO.socket.on('beginNewGame', IO.beginNewGame );
         IO.socket.on('newWordData', IO.onNewWordData);
         IO.socket.on('hostCheckAnswer', IO.hostCheckAnswer);
@@ -46,6 +47,10 @@ var IO = {
         console.log(data);
     },
 
+    clientDisconnectFromRoom : (data) => {
+        App[App.myRole].updateWaitingScreen(`disconnect`, data);
+    },
+
     /**
      * A player has successfully joined the game.
      * @param data {{playerName: string, gameId: int, mySocketId: int}}
@@ -57,8 +62,11 @@ var IO = {
         //
         // So on the 'host' browser window, the App.Host.updateWiatingScreen function is called.
         // And on the player's browser, App.Player.updateWaitingScreen is called.
-        App[App.myRole].updateWaitingScreen(data);
+        alert(`player joined room event`);
+        App[App.myRole].updateWaitingScreen(`connect`, data);
     },
+
+
 
     /**
      * Both players have joined the game.

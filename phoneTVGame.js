@@ -24,13 +24,14 @@ exports.clientInfo = () => {
 exports.initGame = function(sio, socket){
     io = sio;
     gameSocket = socket;
-    clientInfo[gameSocket.id] = {id: gameSocket.id, connected: true};
+    gameSocket.join(`main`);
+    console.log(gameSocket.id + ` connected`);
+    clientInfo[gameSocket.id] = {id: gameSocket.id, connected: true, gameSocket: gameSocket};
     //gameSocket: gameSocket
 
     gameSocket.emit('connected', { message: "You are connected!"});
 
     // Host Events
-    hostEvents.gameSocket = gameSocket;
     hostEvents.this = hostEvents;
     for(const key in hostEvents) {
         if(mngr.hlpFn.isFunction(hostEvents[key])){
@@ -39,7 +40,6 @@ exports.initGame = function(sio, socket){
     }
 
     // Player Events
-    playerEvents.gameSocket = gameSocket;
     playerEvents.this = playerEvents;
     for(const key in playerEvents) {
         if(mngr.hlpFn.isFunction(playerEvents[key])){
@@ -48,13 +48,15 @@ exports.initGame = function(sio, socket){
     }
 
     // Common Events
-    commonEvents.gameSocket = gameSocket;
-    commonEvents.this = commonEvents;
-    for(const key in commonEvents) {
-        if(mngr.hlpFn.isFunction(commonEvents[key])){
-            gameSocket.on(key, commonEvents[key]);
-        }
-    }
+    // commonEvents.this = commonEvents;
+    // for(const key in commonEvents) {
+    //     if(mngr.hlpFn.isFunction(commonEvents[key])){
+    //         gameSocket.on(key, commonEvents[key]);
+    //     }
+    // }
+    gameSocket.on(`disconnect`, (reason) => {
+        updateConnectedList();
+    });
     
 }
 
@@ -64,19 +66,58 @@ exports.initGame = function(sio, socket){
    *                             *
    ******************************* */
 let commonEvents = {
-    disconnect: () => {
-        if (mngr.hlpFn.isUndefined(clientInfo[gameSocket.id].room) || mngr.hlpFn.isUndefined(currentRooms[clientInfo[gameSocket.id].room])) {
+    disconnect: (reason) => {
+        // if (mngr.hlpFn.isUndefined(clientInfo[gameSocket.id].room) || mngr.hlpFn.isUndefined(currentRooms[clientInfo[gameSocket.id].room])) {
+        //     clientInfo[gameSocket.id] = undefined;
+        // } else {
+        //     if(currentRooms[clientInfo[gameSocket.id].room].host.id == gameSocket.id) {
+        //         hostDisconnect(clientInfo[gameSocket.id].room);
+        //         clientInfo[gameSocket.id] = undefined;
+        //     } else {
+        //         clientInfo[gameSocket.id].connected = false;
+        //         playerDisconnect(clientInfo[gameSocket.id].room, gameSocket.id);
+        //     }
+            
+        // }
+    },
+}
+
+function updateConnectedList() {
+
+    setTimeout(() => {
+        let allClients = io.sockets.clients(`main`);
+        let stillConnectedIDs = [];
+        for(let i = 0; i < allClients.length; i++) {
+            stillConnectedIDs.push(allClients[i].id);
+        }
+        console.log(stillConnectedIDs);
+        for(const clientID in clientInfo) {
+            if(!mngr.hlpFn.isUndefined(clientInfo[clientID]) && clientInfo[clientID].connected) {
+                if(!stillConnectedIDs.includes(clientID)) {
+                    clientDisconnect(clientID);
+                }
+            }
+        }
+    }, 100);
+}
+
+function clientDisconnect(clientId) {
+    let gameSocket = {id: clientId};
+    console.log(gameSocket.id + ` disconnected`);
+    if (mngr.hlpFn.isUndefined(clientInfo[gameSocket.id].room) || mngr.hlpFn.isUndefined(currentRooms[clientInfo[gameSocket.id].room])) {
+        console.log(`get rid of user, they are not part of a room`);
+        clientInfo[gameSocket.id] = undefined;
+    } else {
+        if(currentRooms[clientInfo[gameSocket.id].room].host.id == gameSocket.id) {
+            console.log(`user was host, cleanup game`);
+            hostDisconnect(clientInfo[gameSocket.id].room);
             clientInfo[gameSocket.id] = undefined;
         } else {
-            if(currentRooms[clientInfo[gameSocket.id].room].host.id == gameSocket.id) {
-                hostDisconnect(clientInfo[gameSocket.id].room);
-                clientInfo[gameSocket.id] = undefined;
-            } else {
-                clientInfo[gameSocket.id].connected = false;
-            }
-            
-        }
-    },
+            console.log(`standard user disconnect`);
+            clientInfo[gameSocket.id].connected = false;
+            playerDisconnect(clientInfo[gameSocket.id].room, clientInfo[gameSocket.id].playerName, gameSocket.id);
+        }    
+    } 
 }
 
 function hostDisconnect(gameId) {
@@ -84,15 +125,35 @@ function hostDisconnect(gameId) {
     console.log(`Todo: notify children that host Disconnected`);
 }
 
+function playerDisconnect(gameId, playerName) {
+    console.log(`send message to room that somebody disconnected`);
+    for(let i = 0; i < currentRooms[gameId].players.length; i++) {
+        if(currentRooms[gameId].players[i].playerName == playerName) {
+            currentRooms[gameId].players.splice(i, 1);
+            break;
+        }
+    }
+    sendRefresh(gameId, `clientDisconnectFromRoom`, refreshPlayerList(gameId, playerName, `playerDisconnect`)); 
+}
+
 function sendRefresh(gameId, event, data) {
     io.sockets.in(gameId).emit(event, data);
 }
 
-function sendHostData(data) {
+function refreshPlayerList(gameId, playerChanged, message) {
+    let thisGame = currentRooms[gameId];
 
+    let players = [];
+
+    if(!mngr.hlpFn.isUndefined(thisGame)) {
+        for(let i = 0; i < thisGame.players.length; i++) {
+            players.push({id: thisGame.players[i].id, playerName: thisGame.players[i].playerName, connected: thisGame.players[i].connected});
+        }
+    }
+    
+    
+    return {update: message, playerChanged: playerChanged, game: {gameId: gameId, players: players}};
 }
-
-
 
 /* *******************************
    *                             *
@@ -104,7 +165,8 @@ let hostEvents = {
     /**
      * The 'START' button was clicked and 'hostCreateNewGame' event occurred.
      */
-    hostCreateNewGame: () => {
+    hostCreateNewGame: (mySocketId) => {
+        let gameSocket = clientInfo[mySocketId].gameSocket;
         // Create a unique Socket.IO Room
         var thisGameId = ( Math.random() * 100000 ) | 0;
     
@@ -115,9 +177,11 @@ let hostEvents = {
         gameSocket.join(thisGameId.toString());
     
         currentRooms[thisGameId.toString()] = {
+            gameId: thisGameId.toString(),
             gameStarted: false, 
             players: [], 
-            host: clientInfo[gameSocket.id]};
+            host: clientInfo[gameSocket.id]
+        };
         clientInfo[gameSocket.id].room = thisGameId.toString();
     },
 
@@ -158,6 +222,47 @@ let hostEvents = {
     }
 }
 
+function printAllPlayers() {
+    for(const key in clientInfo) {
+        let thisInfo = clientInfo[key];
+        if(!mngr.hlpFn.isUndefined(thisInfo)){
+            console.log({id: thisInfo.id, playerName: thisInfo.playerName, room: thisInfo.room, answerCards: thisInfo.answerCards});
+        }
+    }
+}
+
+function initDataForPlayers(gameId) {
+    currentRooms[gameId].Questions = mngr.cardHandler().getQuestionsCopy();
+    currentRooms[gameId].Answers = mngr.cardHandler().getAnswersCopy();
+    for(let i = 0; i < currentRooms[gameId].players.length; i++) {
+        currentRooms[gameId].players[i].answerCards = [];
+        for(let j = 0; j < 10; j++) {
+            currentRooms[gameId].players[i].answerCards.push(getAndRemoveNewAnswer(gameId));
+        }
+    }
+
+    printAllPlayers();
+}
+
+function beginRound(gameId) {
+    
+}
+
+function getAndRemoveNewQuestion(gameId) {
+    let index = Math.floor(Math.random() * currentRooms[gameId].Questions.length);
+    let string = currentRooms[gameId].Questions[index];
+    currentRooms[gameId].Questions.splice(index, 1);
+    return string;
+}
+
+function getAndRemoveNewAnswer(gameId) {
+    let index = Math.floor(Math.random() * currentRooms[gameId].Answers.length);
+    let string = currentRooms[gameId].Answers[index];
+    currentRooms[gameId].Answers.splice(index, 1);
+    return string;
+}
+
+
 
 /* *****************************
    *                           *
@@ -173,7 +278,7 @@ let playerEvents = {
      * @param data Contains data entered via player's input - playerName and gameId.
      */
     playerJoinGame: (data) => {
-        //console.log('Player ' + data.playerName + 'attempting to join game: ' + data.gameId );
+        console.log('Player ' + data.playerId + 'attempting to join game: ' + data.gameId );
 
         // A reference to the player's Socket.IO socket object
         let sock = gameSocket;
@@ -181,13 +286,13 @@ let playerEvents = {
         // Look up the room ID in the Socket.IO manager object.
         let room = gameSocket.manager.rooms["/" + data.gameId];
 
-        clientInfo[gameSocket.id].room = data.gameId;
-        clientInfo[gameSocket.id].playerName = data.playerName;
+        clientInfo[data.playerId].room = data.gameId;
+        clientInfo[data.playerId].playerName = data.playerName;
 
-        currentRooms[data.gameId].players.push(clientInfo[gameSocket.id]);
+        currentRooms[data.gameId].players.push(clientInfo[data.playerId]);
 
         // If the room exists...
-        if( room != undefined || currentRooms[data.gameId].players.length == 6){
+        if( room != undefined && currentRooms[data.gameId].players.length < 6){
             // attach the socket id to the data object.
             data.mySocketId = sock.id;
 
@@ -201,11 +306,25 @@ let playerEvents = {
                 update: `newPlayer`,
                 game: currentRooms[data.gameId]
             }
-            sendRefresh(data.gameId, 'playerJoinedRoom', message)
-
+            sendRefresh(data.gameId, 'playerJoinedRoom', refreshPlayerList(data.gameId, data.playerName, `newPlayer`));
         } else {
             // Otherwise, send an error message back to the player.
             gameSocket.emit('error',{message: "This room does not exist or is full."} );
+        }
+        //printAllPlayers();
+    },
+
+    leaderStartGame: (data) => {
+        let gameId = data.gameId;
+        if(!mngr.hlpFn.isUndefined(currentRooms[gameId]) && !currentRooms[gameId].gameStarted && currentRooms[gameId].players.length >= 3){
+            currentRooms[gameId].gameStarted = true;
+            currentRooms[gameId].itUser = 0;
+            initDataForPlayers(gameId);
+        } else {
+            console.log(`some case failed`);
+            console.log(mngr.hlpFn.isUndefined(currentRooms[gameId]));
+            console.log(currentRooms[gameId].gameStarted);
+            console.log(currentRooms[gameId].players.length >= 3);
         }
     },
 

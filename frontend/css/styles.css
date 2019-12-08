@@ -59,6 +59,14 @@ html, body {
     user-select: none;
 }
 
+.hidden {
+    visibility: hidden;
+}
+
+.disabled {
+    color: grey;
+}
+
 .btn:focus {
     outline: thin dotted #333;
     outline: 5px auto -webkit-focus-ring-color;

@@ -107,7 +107,19 @@
             </div>
 
             <div class="info buttons">
-                <button id="btnStart" class="btn">Start</button>
+                <button id="btnJoin" class="btn">Join</button>
+                <div id="playerWaitingMessage"></div>
+            </div>
+        </div>
+    </script>
+
+    <script id="wait-start-template" type="text/template">
+        <div class="joinGameWrapper">
+            <div class="info">Waiting for game to start...</div>
+            <div id="wait-start-player-name" class="infoBig">Error!</div>
+
+            <div class="info buttons">
+                <button id="btnStart" class="btn hidden">Start</button>
                 <div id="playerWaitingMessage"></div>
             </div>
         </div>
