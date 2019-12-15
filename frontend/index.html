@@ -52,8 +52,8 @@
 
         <!-- This is the settings screen-->
         <script id="app-settings" type="text/template">
-            <div class="v-scroll-wrapper sclElem">
-                <div class="newCard">
+            <div id="scrollElem" class="v-scroll-wrapper sclElem">
+                <!-- <div class="newCard">
                     <div class="newCardText">
                         A bunch of idiots playing a card game instead of interacting like normal humans.
                     </div> 
@@ -62,7 +62,16 @@
                     <div class="newCardText">
                         Some other setting
                     </div>
-                </div>
+                </div> -->
+            </div>
+        </script>
+
+        <!-- This is a single card element.  It is used to draw cards on the screen-->
+        <script id="card-element">
+            <div class="newCard">
+                <div id="{{id}}" class="newCardText">
+                    {{content}}
+                </div> 
             </div>
         </script>
 

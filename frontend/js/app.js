@@ -106,6 +106,7 @@ var App = {
         // Templates
         App.gameArea = document.getElementById(`gameArea`);
         App.realEstate = document.getElementById(`realEstate`);
+        App.cardElement = document.getElementById(`card-element`).innerHTML;
         App.settingsScreen = document.getElementById(`app-settings`).innerHTML;
         App.templateIntroScreen = document.getElementById(`intro-screen-template`).innerHTML;
         App.templateNewGame = document.getElementById(`create-game-template`).innerHTML;
@@ -137,6 +138,88 @@ var App = {
         App.views.introView();
     },
 
+    htmlElements: {
+        whiteCard: (id, content) => {
+            let card = document.createElement(`DIV`);
+            let cardText = document.createElement(`DIV`);
+
+            card.id = id;
+            cardText.id = id + `Text`;
+            cardText.innerHTML = content;
+
+            card.style.cssText = `
+                width: 500px;
+                max-width: 500px;
+                height: 700px;
+                max-height: 700px;
+                border-radius: 50px;
+                color: black;
+                background-color: white;
+                justify-content: flex-start;
+                align-items: flex-start;
+                text-align: left;
+                box-shadow: 10px 10px 5px grey;
+                margin: 50px;
+            `;
+
+            cardText.style.cssText = `
+                width: 380px;
+                height: 580px;
+                padding: 60px;
+                font-size: 42px;
+            `;
+
+            card.appendChild(cardText);
+
+            return card;
+        },
+
+        blackCard: (id, content) => {
+            let card = document.createElement(`DIV`);
+            let cardText = document.createElement(`DIV`);
+
+            card.id = id;
+            cardText.id = id + `Text`;
+            cardText.innerHTML = content;
+
+            card.style.cssText = `
+                width: 500px;
+                max-width: 500px;
+                height: 700px;
+                max-height: 700px;
+                border-radius: 50px;
+                color: white;
+                background-color: black;
+                justify-content: flex-start;
+                align-items: flex-start;
+                text-align: left;
+                box-shadow: 10px 10px 5px grey;
+                margin: 50px;
+            `;
+
+            cardText.style.cssText = `
+                width: 380px;
+                height: 580px;
+                padding: 60px;
+                font-size: 42px;
+            `;
+
+            card.appendChild(cardText);
+
+            return card;
+        }
+    },
+
+    settings: {
+        requestControl: {
+            display: "Request Control",
+            canShow: true,
+            execute: () => {
+                alert(`Request control`);
+            }
+        }
+    },
+
     views : {
         introView: () => {
             App.stateInfo.settingsOpen = false;
@@ -157,12 +240,20 @@ var App = {
             for(let i = 0; i < scrollWrappers.length; i++) {
                 screenRatio = window.innerWidth/window.innerHeight;
                 cardRatio = 500/700;
-                if(screenRatio > cardRatio) {
-                    App.hlpFn.fitToScreenHeight(dblButtonBoxes[i], 800);
-                }
+                // if(screenRatio > cardRatio) {
+                //     App.hlpFn.fitToScreenHeight(dblButtonBoxes[i], 800);
+                // }
                 App.hlpFn.fitToScreenWidth(scrollWrappers[i], 600);
             }
             document.getElementById(`settingsButton`).innerHTML = `Back`;
+            for(const key in App.settings) {
+                let currentSetting = App.settings[key];
+                if(currentSetting.canShow) {
+                    let card = App.htmlElements.whiteCard(key, currentSetting.display)
+                    card.addEventListener(`click`, currentSetting.execute);
+                    document.getElementById(`scrollElem`).appendChild(card);
+                }
+            }
         },
 
         createHost: () => {
