@@ -111,7 +111,7 @@ var IO = {
      * @param data
      */
     error : (data) => {
-        alert(data.message);
+        console.log(data);
     }
 
 };

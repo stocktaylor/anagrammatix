@@ -21,7 +21,7 @@ exports.clientInfo = () => {
 
 //let hostEventKeys = [`hostCreateNewGame`, `hostPrepareGame`,]
 
-exports.initGame = function(sio, socket){
+exports.initConnection = function(sio, socket){
     io = sio;
     gameSocket = socket;
     gameSocket.join(`main`);
@@ -231,21 +231,45 @@ function printAllPlayers() {
     }
 }
 
-function initDataForPlayers(gameId) {
-    currentRooms[gameId].Questions = mngr.cardHandler().getQuestionsCopy();
-    currentRooms[gameId].Answers = mngr.cardHandler().getAnswersCopy();
-    for(let i = 0; i < currentRooms[gameId].players.length; i++) {
-        currentRooms[gameId].players[i].answerCards = [];
-        for(let j = 0; j < 10; j++) {
-            currentRooms[gameId].players[i].answerCards.push(getAndRemoveNewAnswer(gameId));
+function initGame(gameId) {
+    getRoomByGameId(gameId).then((room) => {
+        room.gameStarted = true;
+        room.QUserIndex = 0; //todo: make this random
+    
+        room.Questions = mngr.cardHandler().getQuestionsCopy();
+        room.Answers = mngr.cardHandler().getAnswersCopy();
+        for(let i = 0; i < room.players.length; i++) {
+            room.players[i].answerCards = [];
+            for(let j = 0; j < 10; j++) {
+                room.players[i].answerCards.push(getAndRemoveNewAnswer(gameId));
+            }
         }
-    }
-
-    printAllPlayers();
+    
+        beginRound(gameId);
+    }).catch((err) =>{
+        console.log(err);
+    })
 }
 
 function beginRound(gameId) {
-    
+    getRoomByGameId(gameId).then((room) => {
+        if(room.QUserIndex >= room.players.length) {
+            room.QUserIndex = 0;
+        }
+        if(room.players.length > 0) {
+            let player = room.players[room.QUserIndex];
+
+            player.questionCard = getAndRemoveNewQuestion(gameId);
+
+            room.currentQuestion = player.questionCard;
+
+            room.players[room.QUserIndex] = player;
+
+            printAllPlayers();
+        }
+    }).catch((reason) => {
+        console.log(reason);
+    });
 }
 
 function getAndRemoveNewQuestion(gameId) {
@@ -262,6 +286,17 @@ function getAndRemoveNewAnswer(gameId) {
     return string;
 }
 
+
+function getRoomByGameId(gameId) {
+    return new Promise((resolve, reject) => {
+        let room = currentRooms[gameId];
+        if(mngr.hlpFn.isUndefined(room)) {
+            reject({message: `Room does not exist`});
+        } else {
+            resolve(room);
+        }
+    })
+}
 
 
 /* *****************************
@@ -317,9 +352,7 @@ let playerEvents = {
     leaderStartGame: (data) => {
         let gameId = data.gameId;
         if(!mngr.hlpFn.isUndefined(currentRooms[gameId]) && !currentRooms[gameId].gameStarted && currentRooms[gameId].players.length >= 3){
-            currentRooms[gameId].gameStarted = true;
-            currentRooms[gameId].itUser = 0;
-            initDataForPlayers(gameId);
+            initGame(gameId);
         } else {
             console.log(`some case failed`);
             console.log(mngr.hlpFn.isUndefined(currentRooms[gameId]));

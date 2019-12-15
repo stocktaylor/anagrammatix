@@ -7,24 +7,135 @@ Dark Orange : #de8900
 
 */
 
-html, body {
+html{
     background-image: url("../img/triangular_@2X.png");
     background-repeat: repeat;
     background-attachment: fixed;
     background-position: center;
-    height: 100%;
-    width: 100%;
     margin: 0;
     padding: 0;
+    overflow: hidden;
+    height: 100%;
+    font-family: "Lato";
+    font-weight: 800;
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Opera and Firefox */
+}
+
+body {
+    background-image: url("../img/triangular_@2X.png");
+    background-repeat: repeat;
+    background-attachment: fixed;
+    background-position: center;
+    margin: 0;
+    padding: 0;
+    overflow: auto;
+    height: 100%;
+    font-family: "Lato";
+    font-weight: 800;
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Opera and Firefox */
+}
+
+.sclElem {
+    transform-origin: top left;
 }
 
 
+#screenSpace {
+    width: 100vw;
+    height: 90vh;
+    max-width: 100%;
+    max-height: 100vh;
+}
+
+#titleBar {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100vw;
+    max-width: 100%;
+    height: 10vh;
+    font-size: 2vh;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    background-color: #9c0a00;
+    color: white;
+}
+
+.titleBarSide {
+    width: 60px;
+    height: 100%;
+    text-align: center;
+    margin-left: 10px;
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#titleBarLabel {
+    width: 200px;
+    height: 100%;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#realEstate {
+    width: 100%;
+    margin-top: 10vh;
+    height: 90vh;
+    max-height: 90vh;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 17px;
+    box-sizing: content-box;
+}
+
+.newCard {
+    width: 500px;
+    max-width: 500px;
+    height: 700px;
+    max-height: 700px;
+    border-radius: 50px;
+    color: black;
+    background-color: white;
+    justify-content: flex-start;
+    align-items: flex-start;
+    text-align: left;
+    box-shadow: 10px 10px 5px grey;
+    margin: 50px;
+}
+
+.newCardText {
+    width: 380px;
+    height: 580px;
+    padding: 60px;
+    font-size: 42px;
+}
+
+.v-scroll-wrapper {
+    width: 600px;
+}
 
 /* ******************************
               BUTTONS!
      (Inspired by Bootstrap 3.0)
    ****************************** */
-#settingsButton {
+/* #settingsButton {
     height: 6vh;
     width: 14vh;
     font-size: 4vh;
@@ -32,18 +143,21 @@ html, body {
     font-family: "Lato";
     font-weight: 800;
     opacity: 0.02;
-}
+} */
 
+.dblButtonBox {
+    width: 1200px;
+}
 
 .btn {
     display: inline-block;
-    height: 100%;
-    width: 49%;
+    height: 200px;
+    width: 500px;
     margin-bottom: 0;
-    color: #d9d9d9;
-    font-family: 'Quicksand', sans-serif;
-    font-weight: 700;
-    font-size: 2em;
+    margin-left: 50px;
+    margin-right: 50px;
+    color: white;
+    font-size: 90px;
     line-height: 1.2;
     text-align: center;
     background-color: #9c0a00;
@@ -51,7 +165,7 @@ html, body {
     vertical-align: middle;
     cursor: pointer;
     border: 1px solid transparent;
-    border-radius: 3px;
+    border-radius: 10px;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
@@ -104,27 +218,16 @@ html, body {
     width: 100%;
 }
 
-.titleWrapper {
-    font-family: "Lato";
-    font-weight: 800;
-    position: absolute;
-    height: 50%;
-    width: 96%;
-    margin: auto;
-    bottom: 0;
-    left: 0;
-    top: 0;
-    right: 0;
-}
-
 .title {
     margin: 0px auto;
     text-align: center;
     width: 100%;
+    height: 30vh;
+    margin-top: 15vh;
+    font-size: 8vw;
     font-family: "Lato";
     font-weight: 800;
     color: #d9d9d9;
-    padding-bottom: 4%;
 }
 
 .buttons {

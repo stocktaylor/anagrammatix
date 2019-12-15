@@ -28,7 +28,7 @@ mngr.init().then(() => {
 
     // Listen for Socket.IO Connections. Once connected, start the game logic.
     io.sockets.on('connection', function (socket) {
-        mngr.ptg().initGame(io, socket);
+        mngr.ptg().initConnection(io, socket);
     });
 
 

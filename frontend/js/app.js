@@ -9,9 +9,7 @@ var App = {
             }
         },
         settingsClick: () => {
-            document.getElementById(`settingsButton`).addEventListener(`click`, () => {
-                alert(`ToDo: Settings Menu`);
-            });
+            App.views.settingsView();
         }
     },
 
@@ -32,6 +30,14 @@ var App = {
 
         isFunction: (chk) => {
             return typeof chk == `function`;
+        }, 
+
+        fitToScreenWidth: (elem, staticWidth) => {
+            elem.style.transform = `scale(` + window.innerWidth/staticWidth + `)`;
+        },
+
+        fitToScreenHeight: (elem, staticHeight) => {
+            elem.style.transform = `scale(` + window.innerHeight/staticHeight + `)`;
         }
     },
 
@@ -82,22 +88,20 @@ var App = {
     cacheElements: () => {
         // Templates
         App.gameArea = document.getElementById(`gameArea`);
+        App.realEstate = document.getElementById(`realEstate`);
+        App.settingsScreen = document.getElementById(`app-settings`).innerHTML;
         App.templateIntroScreen = document.getElementById(`intro-screen-template`).innerHTML;
         App.templateNewGame = document.getElementById(`create-game-template`).innerHTML;
+        App.joinGameInfo = document.getElementById(`join-game-info`).innerHTML;
         App.templateJoinGame = document.getElementById(`join-game-template`).innerHTML;
         App.templateWaitStart = document.getElementById(`wait-start-template`).innerHTML
-        App.hostGame = document.getElementById(`host-game-template`).innerHTML;
+        //App.hostGame = document.getElementById(`host-game-template`).innerHTML;
     },
 
     /**
      * Create some click handlers for the various buttons that appear on-screen.
      */
     bindEvents: () => {
-        // Host
-        domHelper.clickID(`btnCreateGame`, App.Host.onCreateClick);
-
-        // Player
-        domHelper.clickID(`btnJoinGame`, App.Player.onJoinClick);
         domHelper.clickID(`btnJoin`, App.Player.onPlayerStartClick);
         domHelper.clickID(`btnStart`, App.Player.leaderStartGame);
         domHelper.clickClass(`btnAnswer`, App.Player.onPlayerAnswerClick);
@@ -113,8 +117,54 @@ var App = {
      * (with Start and Join buttons)
      */
     showInitScreen: () => {
-        App.gameArea.innerHTML = App.templateIntroScreen;
-        App.doTextFit('.title');
+        App.views.introView();
+    },
+
+    views : {
+        introView: () => {
+            App.realEstate.innerHTML = App.templateIntroScreen;
+            let dblButtonBoxes = document.getElementsByClassName(`dblButtonBox`);
+            for(let i = 0; i < dblButtonBoxes.length; i++) {
+                App.hlpFn.fitToScreenWidth(dblButtonBoxes[i], 1200);
+            }
+            domHelper.clickID(`btnCreateGame`, App.Host.onCreateClick);
+            domHelper.clickID(`btnJoinGame`, App.Player.onJoinClick);
+        }, 
+
+        settingsView: () => {
+            document.getElementById(`settingsButton`).addEventListener(`click`, () => {
+                App.realEstate.innerHTML = App.settingsScreen;
+                let scrollWrappers = document.getElementsByClassName(`v-scroll-wrapper`);
+                for(let i = 0; i < scrollWrappers.length; i++) {
+                    screenRatio = window.innerWidth/window.innerHeight;
+                    cardRatio = 500/700;
+                    if(screenRatio > cardRatio) {
+                        App.hlpFn.fitToScreenHeight(dblButtonBoxes[i], 800);
+                    }
+                    App.hlpFn.fitToScreenWidth(scrollWrappers[i], 600);
+                }
+            });
+        },
+
+        createHost: () => {
+            App.realEstate.innerHTML = App.templateNewGame;
+
+            document.getElementById(`aboveCardsContent`).innerHTML = App.joinGameInfo;
+
+            //ToDo: API to get the hostname/url of the server
+            document.getElementById(`gameURL`).innerHTML = window.location.href;
+            App.doTextFit('#gameURL');
+            
+            // Show the gameId / room id on screen
+            document.getElementById(`spanNewGameCode`).innerHTML = App.gameId;
+        },
+
+        joinPlayer: () => {
+
+        },
+        joinedPlayer: () => {
+
+        }
     },
 
 
@@ -163,27 +213,14 @@ var App = {
             App.gameId = data.gameId;
             App.mySocketId = data.mySocketId;
             App.myRole = 'Host';
-            App.Host.numPlayersInRoom = 0;
 
-            App.Host.displayNewGameScreen();
+            App.views.createHost();
             // console.log("Game started with ID: " + App.gameId + ' by host: ' + App.mySocketId);
         },
 
         /**
          * Show the Host screen containing the game URL and unique game ID
          */
-        displayNewGameScreen : () => {
-            // Fill the game screen with the appropriate HTML
-            App.gameArea.innerHTML = App.templateNewGame;
-
-            // Display the URL on screen
-            //ToDo: API to get the hostname/url of the server
-            $('#gameURL').text(window.location.href);
-            App.doTextFit('#gameURL');
-
-            // Show the gameId / room id on screen
-            $('#spanNewGameCode').text(App.gameId);
-        },
 
         /**
          * Update the Host screen when the first player joins
@@ -191,9 +228,9 @@ var App = {
          */
         updateWaitingScreen: (action, data) => {
             // If this is a restarted game, show the screen.
-            if ( App.Host.isNewGame ) {
-                App.Host.displayNewGameScreen();
-            }
+            // if ( App.Host.isNewGame ) {
+            //     App.Host.displayNewGameScreen();
+            // }
 
             // Store the new player's data on the Host.
             App.Host.players = data.game.players;
