@@ -20,9 +20,6 @@ var IO = {
         IO.socket.on('playerJoinedRoom', IO.playerJoinedRoom );
         IO.socket.on(`clientDisconnectFromRoom`, IO.clientDisconnectFromRoom);
         IO.socket.on('beginNewGame', IO.beginNewGame );
-        IO.socket.on('newWordData', IO.onNewWordData);
-        IO.socket.on('hostCheckAnswer', IO.hostCheckAnswer);
-        IO.socket.on('gameOver', IO.gameOver);
         IO.socket.on('error', IO.error );
     },
 
@@ -74,36 +71,6 @@ var IO = {
      */
     beginNewGame : (data) => {
         App[App.myRole].gameCountdown(data);
-    },
-
-    /**
-     * A new set of words for the round is returned from the server.
-     * @param data
-     */
-    onNewWordData : (data) => {
-        // Update the current round
-        App.currentRound = data.round;
-
-        // Change the word for the Host and Player
-        App[App.myRole].newWord(data);
-    },
-
-    /**
-     * A player answered. If this is the host, check the answer.
-     * @param data
-     */
-    hostCheckAnswer : (data) => {
-        if(App.myRole === 'Host') {
-            App.Host.checkAnswer(data);
-        }
-    },
-
-    /**
-     * Let everyone know the game has ended.
-     * @param data
-     */
-    gameOver : (data) => {
-        App[App.myRole].endGame(data);
     },
 
     /**

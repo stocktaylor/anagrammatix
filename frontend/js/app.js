@@ -9,7 +9,19 @@ var App = {
             }
         },
         settingsClick: () => {
-            App.views.settingsView();
+            document.getElementById(`settingsButton`).addEventListener(`click`, () => {
+                if(App.stateInfo.settingsOpen) {
+                    if(App.hlpFn.isFunction(App.views[App.stateInfo.currentView])) {
+                        App.views[App.stateInfo.currentView]();
+                        document.getElementById(`settingsButton`).innerHTML = `Settings`;
+                    } else {
+                        alert(`Fatal Error! Current view set in state info does not reference a view enable function`);
+                    }
+                } else {
+                    App.views.settingsView();
+                }
+            });
+            
         }
     },
 
@@ -68,6 +80,11 @@ var App = {
      */
     currentRound: 0,
 
+    stateInfo: {
+        settingsOpen: false,
+        currentView: `introView`
+    },
+
     /* *************************************
      *                Setup                *
      * *********************************** */
@@ -122,6 +139,8 @@ var App = {
 
     views : {
         introView: () => {
+            App.stateInfo.settingsOpen = false;
+            App.stateInfo.currentView = `introView`;
             App.realEstate.innerHTML = App.templateIntroScreen;
             let dblButtonBoxes = document.getElementsByClassName(`dblButtonBox`);
             for(let i = 0; i < dblButtonBoxes.length; i++) {
@@ -132,21 +151,23 @@ var App = {
         }, 
 
         settingsView: () => {
-            document.getElementById(`settingsButton`).addEventListener(`click`, () => {
-                App.realEstate.innerHTML = App.settingsScreen;
-                let scrollWrappers = document.getElementsByClassName(`v-scroll-wrapper`);
-                for(let i = 0; i < scrollWrappers.length; i++) {
-                    screenRatio = window.innerWidth/window.innerHeight;
-                    cardRatio = 500/700;
-                    if(screenRatio > cardRatio) {
-                        App.hlpFn.fitToScreenHeight(dblButtonBoxes[i], 800);
-                    }
-                    App.hlpFn.fitToScreenWidth(scrollWrappers[i], 600);
+            App.stateInfo.settingsOpen = true;
+            App.realEstate.innerHTML = App.settingsScreen;
+            let scrollWrappers = document.getElementsByClassName(`v-scroll-wrapper`);
+            for(let i = 0; i < scrollWrappers.length; i++) {
+                screenRatio = window.innerWidth/window.innerHeight;
+                cardRatio = 500/700;
+                if(screenRatio > cardRatio) {
+                    App.hlpFn.fitToScreenHeight(dblButtonBoxes[i], 800);
                 }
-            });
+                App.hlpFn.fitToScreenWidth(scrollWrappers[i], 600);
+            }
+            document.getElementById(`settingsButton`).innerHTML = `Back`;
         },
 
         createHost: () => {
+            App.stateInfo.settingsOpen = false;
+            App.stateInfo.currentView = `createHost`;
             App.realEstate.innerHTML = App.templateNewGame;
 
             document.getElementById(`aboveCardsContent`).innerHTML = App.joinGameInfo;
@@ -160,10 +181,15 @@ var App = {
         },
 
         joinPlayer: () => {
+            App.stateInfo.settingsOpen = false;
+            App.stateInfo.currentView = `joinPlayer`;
+            App.realEstate.innerHTML = App.templateJoinGame;
+            App.bindEvents();
 
         },
         joinedPlayer: () => {
-
+            App.stateInfo.settingsOpen = false;
+            App.stateInfo.currentView = `joinedPlayer`;
         }
     },
 
@@ -246,127 +272,6 @@ var App = {
                 document.getElementById(App.Host.playerIndexToCard[i]).childNodes[1].innerHTML = data.game.players[i].playerName + (data.game.players[i].connected ? `` : ` (Disconnected)`);
             }
         },
-
-        /**
-         * Show the countdown screen
-         */
-        gameCountdown : () => {
-
-            // Prepare the game screen with new HTML
-            App.gameArea.innerHTML = App.hostGame;
-            App.doTextFit('#hostWord');
-
-            // Begin the on-screen countdown timer
-            var $secondsLeft = $('#hostWord');
-            App.countDown( $secondsLeft, 5, () => {
-                IO.socket.emit('hostCountdownFinished', App.gameId);
-            });
-
-            // Display the players' names on screen
-            $('#player1Score')
-                .find('.playerName')
-                .html(App.Host.players[0].playerName);
-
-            $('#player2Score')
-                .find('.playerName')
-                .html(App.Host.players[1].playerName);
-
-            // Set the Score section on screen to 0 for each player.
-            $('#player1Score').find('.score').attr('id',App.Host.players[0].mySocketId);
-            $('#player2Score').find('.score').attr('id',App.Host.players[1].mySocketId);
-        },
-
-        /**
-         * Show the word for the current round on screen.
-         * @param data{{round: *, word: *, answer: *, list: Array}}
-         */
-        newWord : (data) => {
-            // Insert the new word into the DOM
-            $('#hostWord').text(data.word);
-            App.doTextFit('#hostWord');
-
-            // Update the data for the current round
-            App.Host.currentCorrectAnswer = data.answer;
-            App.Host.currentRound = data.round;
-        },
-
-        /**
-         * Check the answer clicked by a player.
-         * @param data{{round: *, playerId: *, answer: *, gameId: *}}
-         */
-        checkAnswer : (data) => {
-            // Verify that the answer clicked is from the current round.
-            // This prevents a 'late entry' from a player whos screen has not
-            // yet updated to the current round.
-            if (data.round === App.currentRound){
-
-                // Get the player's score
-                var $pScore = $('#' + data.playerId);
-
-                // Advance player's score if it is correct
-                if( App.Host.currentCorrectAnswer === data.answer ) {
-                    // Add 5 to the player's score
-                    $pScore.text( +$pScore.text() + 5 );
-
-                    // Advance the round
-                    App.currentRound += 1;
-
-                    // Prepare data to send to the server
-                    var data = {
-                        gameId : App.gameId,
-                        round : App.currentRound
-                    }
-
-                    // Notify the server to start the next round.
-                    IO.socket.emit('hostNextRound',data);
-
-                } else {
-                    // A wrong answer was submitted, so decrement the player's score.
-                    $pScore.text( +$pScore.text() - 3 );
-                }
-            }
-        },
-
-
-        /**
-         * All 10 rounds have played out. End the game.
-         * @param data
-         */
-        endGame : (data) => {
-            // Get the data for player 1 from the host screen
-            var $p1 = $('#player1Score');
-            var p1Score = +$p1.find('.score').text();
-            var p1Name = $p1.find('.playerName').text();
-
-            // Get the data for player 2 from the host screen
-            var $p2 = $('#player2Score');
-            var p2Score = +$p2.find('.score').text();
-            var p2Name = $p2.find('.playerName').text();
-
-            // Find the winner based on the scores
-            var winner = (p1Score < p2Score) ? p2Name : p1Name;
-            var tie = (p1Score === p2Score);
-
-            // Display the winner (or tie game message)
-            if(tie){
-                $('#hostWord').text("It's a Tie!");
-            } else {
-                $('#hostWord').text( winner + ' Wins!!' );
-            }
-            App.doTextFit('#hostWord');
-
-            // Reset game data
-            App.Host.numPlayersInRoom = 0;
-            App.Host.isNewGame = true;
-        },
-
-        /**
-         * A player hit the 'Start Again' button after the end of a game.
-         */
-        restartGame : () => {
-            App.gameArea.innerHTML = App.templateNewGame;
-            $('#spanNewGameCode').text(App.gameId);
-        }
     },
 
 
@@ -390,22 +295,15 @@ var App = {
          * Click handler for the 'JOIN' button
          */
         onJoinClick: () => {
-            // console.log('Clicked "Join A Game"');
-
-            // Display the Join Game HTML on the player's screen.
-            App.gameArea.innerHTML = App.templateJoinGame;
-            App.bindEvents();
+            App.views.joinPlayer();
         },
 
-        /**
-         * The player entered their name and gameId (hopefully)
-         * and clicked Start.
-         */
-        onPlayerStartClick: () => {
-            // console.log('Player clicked "Start"');
+        leaderStartGame: () => {
+            alert(`start game!`);
+            IO.socket.emit(`leaderStartGame`, {gameId: App.gameId});
+        },
 
-            // collect data to send to the server
-            console.log(`lets get this party started`);
+        onPlayerStartClick: () => {
             var data = {
                 playerId: App.mySocketId,
                 gameId : ($('#inputGameId').val()),
@@ -420,50 +318,11 @@ var App = {
             App.Player.myName = data.playerName;
         },
 
-        leaderStartGame: () => {
-            alert(`start game!`);
-            IO.socket.emit(`leaderStartGame`, {gameId: App.gameId});
-        },
-
-        /**
-         *  Click handler for the Player hitting a word in the word list.
-         */
-        onPlayerAnswerClick: () => {
-            // console.log('Clicked Answer Button');
-            var $btn = $(this);      // the tapped button
-            var answer = $btn.val(); // The tapped word
-
-            // Send the player info and tapped word to the server so
-            // the host can check the answer.
-            var data = {
-                gameId: App.gameId,
-                playerId: App.mySocketId,
-                answer: answer,
-                round: App.currentRound
-            }
-            IO.socket.emit('playerAnswer',data);
-        },
-
-        /**
-         *  Click handler for the "Start Again" button that appears
-         *  when a game is over.
-         */
-        onPlayerRestart : () => {
-            var data = {
-                gameId : App.gameId,
-                playerName : App.Player.myName
-            }
-            IO.socket.emit('playerRestart',data);
-            App.currentRound = 0;
-            $('#gameArea').html("<h3>Waiting on host to start new game.</h3>");
-        },
-
         /**
          * Display the waiting screen for player 1
          * @param data
          */
         updateWaitingScreen : (action, data) => {
-            alert(`update waiting screen!`);
             if(data.playerChanged == App.Player.myName) {
                 App.gameId = data.game.gameId;
                 App.gameArea.innerHTML = App.templateWaitStart;
@@ -486,98 +345,6 @@ var App = {
                 }
             }
         },
-
-        /**
-         * Display 'Get Ready' while the countdown timer ticks down.
-         * @param hostData
-         */
-        gameCountdown : (hostData) => {
-            App.Player.hostSocketId = hostData.mySocketId;
-            $('#gameArea')
-                .html('<div class="gameOver">Get Ready!</div>');
-        },
-
-        /**
-         * Show the list of words for the current round.
-         * @param data{{round: *, word: *, answer: *, list: Array}}
-         */
-        newWord : (data) => {
-            // Create an unordered list element
-            var $list = $('<ul/>').attr('id','ulAnswers');
-
-            // Insert a list item for each word in the word list
-            // received from the server.
-            $.each(data.list, () => {
-                $list                                //  <ul> </ul>
-                    .append( $('<li/>')              //  <ul> <li> </li> </ul>
-                        .append( $('<button/>')      //  <ul> <li> <button> </button> </li> </ul>
-                            .addClass('btnAnswer')   //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
-                            .addClass('btn')         //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
-                            .val(this)               //  <ul> <li> <button class='btnAnswer' value='word'> </button> </li> </ul>
-                            .html(this)              //  <ul> <li> <button class='btnAnswer' value='word'>word</button> </li> </ul>
-                        )
-                    )
-            });
-
-            // Insert the list onto the screen.
-            $('#gameArea').html($list);
-        },
-
-        /**
-         * Show the "Game Over" screen.
-         */
-        endGame : () => {
-            $('#gameArea')
-                .html('<div class="gameOver">Game Over!</div>')
-                .append(
-                    // Create a button to start a new game.
-                    $('<button>Start Again</button>')
-                        .attr('id','btnPlayerRestart')
-                        .addClass('btn')
-                        .addClass('btnGameOver')
-                );
-        }
-    },
-
-
-    /* **************************
-              UTILITY CODE
-       ************************** */
-
-    /**
-     * Display the countdown timer on the Host screen
-     *
-     * @param $el The container element for the countdown timer
-     * @param startTime
-     * @param callback The function to call when the timer ends.
-     */
-    countDown : ($el, startTime, callback) => {
-
-        // Display the starting time on the screen.
-        $el.text(startTime);
-        App.doTextFit('#hostWord');
-
-        // console.log('Starting Countdown...');
-
-        // Start a 1 second timer
-        var timer = setInterval(countItDown,1000);
-
-        // Decrement the displayed timer value on each 'tick'
-        function countItDown(){
-            startTime -= 1
-            $el.text(startTime);
-            App.doTextFit('#hostWord');
-
-            if( startTime <= 0 ){
-                // console.log('Countdown Finished.');
-
-                // Stop the timer and do the callback.
-                clearInterval(timer);
-                callback();
-                return;
-            }
-        }
-
     },
 
     /**
