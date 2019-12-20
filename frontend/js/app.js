@@ -44,6 +44,10 @@ var App = {
             return typeof chk == `function`;
         }, 
 
+        isString: (chk) => {
+            return typeof chk == `string`;
+        },
+
         fitToScreenWidth: (elem, staticWidth) => {
             elem.style.transform = `scale(` + window.innerWidth/staticWidth + `)`;
         },
@@ -59,6 +63,11 @@ var App = {
      *
      */
     gameId: 0,
+
+    /**
+    * Contains references to player data
+    */
+    players: [],
 
     /**
      * This is used to differentiate between 'Host' and 'Player' browsers.
@@ -107,7 +116,7 @@ var App = {
         App.gameArea = document.getElementById(`gameArea`);
         App.realEstate = document.getElementById(`realEstate`);
         App.cardElement = document.getElementById(`card-element`).innerHTML;
-        App.settingsScreen = document.getElementById(`app-settings`).innerHTML;
+        App.scrollCardView = document.getElementById(`scroll-card-view`).innerHTML;
         App.templateIntroScreen = document.getElementById(`intro-screen-template`).innerHTML;
         App.templateNewGame = document.getElementById(`create-game-template`).innerHTML;
         App.joinGameInfo = document.getElementById(`join-game-info`).innerHTML;
@@ -213,9 +222,20 @@ var App = {
     settings: {
         requestControl: {
             display: "Request Control",
-            canShow: true,
+            canShow: () => {
+                return true;
+            },
             execute: () => {
                 alert(`Request control`);
+            }
+        },
+        enableDevMode: {
+            display: "Developer Mode",
+            canShow: () => {
+                return true;
+            },
+            execute: () => {
+                alert(`ToDo: Show Dev Mode`);
             }
         }
     },
@@ -235,7 +255,7 @@ var App = {
 
         settingsView: () => {
             App.stateInfo.settingsOpen = true;
-            App.realEstate.innerHTML = App.settingsScreen;
+            App.realEstate.innerHTML = App.scrollCardView;
             let scrollWrappers = document.getElementsByClassName(`v-scroll-wrapper`);
             for(let i = 0; i < scrollWrappers.length; i++) {
                 screenRatio = window.innerWidth/window.innerHeight;
@@ -248,7 +268,7 @@ var App = {
             document.getElementById(`settingsButton`).innerHTML = `Back`;
             for(const key in App.settings) {
                 let currentSetting = App.settings[key];
-                if(currentSetting.canShow) {
+                if(currentSetting.canShow()) {
                     let card = App.htmlElements.whiteCard(key, currentSetting.display)
                     card.addEventListener(`click`, currentSetting.execute);
                     document.getElementById(`scrollElem`).appendChild(card);
@@ -276,11 +296,53 @@ var App = {
             App.stateInfo.currentView = `joinPlayer`;
             App.realEstate.innerHTML = App.templateJoinGame;
             App.bindEvents();
-
         },
         joinedPlayer: () => {
             App.stateInfo.settingsOpen = false;
-            App.stateInfo.currentView = `joinedPlayer`;
+            App.stateInfo.currentView = `joinPlayer`;
+            App.realEstate.innerHTML = App.scrollCardView;
+            let scrollWrappers = document.getElementsByClassName(`v-scroll-wrapper`);
+            for(let i = 0; i < scrollWrappers.length; i++) {
+                screenRatio = window.innerWidth/window.innerHeight;
+                cardRatio = 500/700;
+                // if(screenRatio > cardRatio) {
+                //     App.hlpFn.fitToScreenHeight(dblButtonBoxes[i], 800);
+                // }
+                App.hlpFn.fitToScreenWidth(scrollWrappers[i], 600);
+            }
+            let scroller = document.getElementById(`scrollElem`);
+            if(App.players[0].id == App.mySocketId) {
+                if(App.players.length < 3) {
+                    scroller.appendChild(App.htmlElements.blackCard(`titleCard`, `Need at least 3 players before the game can start...`));
+                } else {
+                    let card = App.htmlElements.blackCard(`titleCard`, `Click to start game`);
+                    card.addEventListener(`click`, () => {
+                        App.Player.leaderStartGame();
+                    });
+                    scroller.appendChild(card);
+                }
+            } else {
+                App.views.updateHeader(`Waiting for the game to start...`);
+                //scroller.appendChild(App.htmlElements.blackCard(`titleCard`, `Waiting for first player to start the game...`));
+            }
+            for(let i = 0; i < App.players.length; i++) {
+                scroller.appendChild(App.htmlElements.whiteCard(`player` + i, App.players[i].playerName));
+            }
+        },
+        popUpMessage: (message) => {
+            if(App.hlpFn.isString(message)) {
+                alert(message);
+            } else {
+                alert(`Pop up function was called, but message passed was not of type string.  Saving a trace to the console...`);
+                console.trace();
+            }
+        }, 
+        updateHeader: (title) => {
+            if(App.hlpFn.isString(title)) {
+                document.getElementById(`ptvgHeader`).innerHTML = title;
+            } else {
+                document.getElementById(`ptvgHeader`).innerHTML = `Cards Against Humanity`;
+            }
         }
     },
 
@@ -289,24 +351,6 @@ var App = {
        *         HOST CODE           *
        ******************************* */
     Host : {
-
-        /**
-         * Contains references to player data
-         */
-        players : [],
-
-        /**
-         * Flag to indicate if a new game is starting.
-         * This is used after the first game ends, and players initiate a new game
-         * without refreshing the browser windows.
-         */
-        isNewGame : false,
-
-        /**
-         * Keep track of the number of players that have joined the game.
-         */
-        numPlayersInRoom: 0,
-
         /**
          * A reference to the correct answer for the current round.
          */
@@ -343,17 +387,14 @@ var App = {
          * Update the Host screen when the first player joins
          * @param data{{playerName: string}}
          */
-        updateWaitingScreen: (action, data) => {
+        updateGameState: (action, data) => {
             // If this is a restarted game, show the screen.
             // if ( App.Host.isNewGame ) {
             //     App.Host.displayNewGameScreen();
             // }
 
             // Store the new player's data on the Host.
-            App.Host.players = data.game.players;
-
-            // Increment the number of players in the room
-            App.Host.numPlayersInRoom = data.game.players.length;
+            App.players = data.game.players;
 
             for(let i = 0; i < App.Host.playerIndexToCard.length; i++) {
                 document.getElementById(App.Host.playerIndexToCard[i]).childNodes[1].innerHTML = `Waiting for players to join...`;
@@ -396,7 +437,7 @@ var App = {
 
         onPlayerStartClick: () => {
             var data = {
-                playerId: App.mySocketId,
+                mySocketId: App.mySocketId,
                 gameId : ($('#inputGameId').val()),
                 playerName : $('#inputPlayerName').val() || 'anon'
             };
@@ -405,6 +446,7 @@ var App = {
             IO.socket.emit('playerJoinGame', data);
 
             // Set the appropriate properties for the current player.
+            //todo: clear these variables if the game ends up not being joinable
             App.myRole = 'Player';
             App.Player.myName = data.playerName;
         },
@@ -413,28 +455,43 @@ var App = {
          * Display the waiting screen for player 1
          * @param data
          */
-        updateWaitingScreen : (action, data) => {
-            if(data.playerChanged == App.Player.myName) {
-                App.gameId = data.game.gameId;
-                App.gameArea.innerHTML = App.templateWaitStart;
-                document.getElementById(`wait-start-player-name`).innerHTML = App.Player.myName;
-            }
-            if(!document.getElementById(`btnStart`).classList.contains(`hidden`))document.getElementById(`btnStart`).classList.add(`hidden`);
-            if(data.game.players.length > 0 && data.game.players[0].id == IO.socket.socket.sessionid) {
-                if(document.getElementById(`btnStart`).classList.contains(`hidden`)){
-                    document.getElementById(`btnStart`).classList.remove(`hidden`);
-                    App.bindEvents();
-                }
-                if(data.game.players.length >= 3) {
-                    if(document.getElementById(`btnStart`).classList.contains(`disabled`)){
-                        document.getElementById(`btnStart`).classList.remove(`disabled`);
+        updateGameState : (action, data) => {
+            switch(action) {
+                case `connect`:
+                    console.log(`Player Connect Event`);
+                    if(App.gameId == 0) {
+                        console.log(`GameID not set, setting now...`);
+                        App.gameId = data.game.gameId;
                     }
-                } else {
-                    if(!document.getElementById(`btnStart`).classList.contains(`disabled`)){
-                        document.getElementById(`btnStart`).classList.add(`disabled`);
-                    }
-                }
+                    App.players = data.game.players;
+                    console.log(App.players);
+                    break;
+                case `disconnect`:
+
+                    break;
             }
+            App.views.joinedPlayer();
+            // if(data.playerChanged == App.Player.myName) {
+            //     App.gameId = data.game.gameId;
+            //     App.gameArea.innerHTML = App.templateWaitStart;
+            //     document.getElementById(`wait-start-player-name`).innerHTML = App.Player.myName;
+            // }
+            // if(!document.getElementById(`btnStart`).classList.contains(`hidden`))document.getElementById(`btnStart`).classList.add(`hidden`);
+            // if(data.game.players.length > 0 && data.game.players[0].id == IO.socket.socket.sessionid) {
+            //     if(document.getElementById(`btnStart`).classList.contains(`hidden`)){
+            //         document.getElementById(`btnStart`).classList.remove(`hidden`);
+            //         App.bindEvents();
+            //     }
+            //     if(data.game.players.length >= 3) {
+            //         if(document.getElementById(`btnStart`).classList.contains(`disabled`)){
+            //             document.getElementById(`btnStart`).classList.remove(`disabled`);
+            //         }
+            //     } else {
+            //         if(!document.getElementById(`btnStart`).classList.contains(`disabled`)){
+            //             document.getElementById(`btnStart`).classList.add(`disabled`);
+            //         }
+            //     }
+            // }
         },
     },
 

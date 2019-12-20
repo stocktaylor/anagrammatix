@@ -45,7 +45,7 @@ var IO = {
     },
 
     clientDisconnectFromRoom : (data) => {
-        App[App.myRole].updateWaitingScreen(`disconnect`, data);
+        App[App.myRole].updateGameState(`disconnect`, data);
     },
 
     /**
@@ -53,14 +53,13 @@ var IO = {
      * @param data {{playerName: string, gameId: int, mySocketId: int}}
      */
     playerJoinedRoom : (data) => {
-        // When a player joins a room, do the updateWaitingScreen funciton.
+        // When a player joins a room, do the updateGameState funciton.
         // There are two versions of this function: one for the 'host' and
         // another for the 'player'.
         //
         // So on the 'host' browser window, the App.Host.updateWiatingScreen function is called.
-        // And on the player's browser, App.Player.updateWaitingScreen is called.
-        alert(`player joined room event`);
-        App[App.myRole].updateWaitingScreen(`connect`, data);
+        // And on the player's browser, App.Player.updateGameState is called.
+        App[App.myRole].updateGameState(`connect`, data);
     },
 
 
@@ -78,7 +77,7 @@ var IO = {
      * @param data
      */
     error : (data) => {
-        console.log(data);
+        App.views.popUpMessage(data.message);
     }
 
 };

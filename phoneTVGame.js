@@ -257,13 +257,9 @@ function beginRound(gameId) {
             room.QUserIndex = 0;
         }
         if(room.players.length > 0) {
-            let player = room.players[room.QUserIndex];
+            room.players[room.QUserIndex].questionCard = getAndRemoveNewQuestion(gameId);
 
-            player.questionCard = getAndRemoveNewQuestion(gameId);
-
-            room.currentQuestion = player.questionCard;
-
-            room.players[room.QUserIndex] = player;
+            room.currentQuestion = room.players[room.QUserIndex].questionCard;
 
             printAllPlayers();
         }
@@ -313,35 +309,47 @@ let playerEvents = {
      * @param data Contains data entered via player's input - playerName and gameId.
      */
     playerJoinGame: (data) => {
-        console.log('Player ' + data.playerId + 'attempting to join game: ' + data.gameId );
+        console.log('Player ' + data.mySocketId + 'attempting to join game: ' + data.gameId );
 
         // A reference to the player's Socket.IO socket object
-        let sock = gameSocket;
+        //let sock = gameSocket;
+        let sock = clientInfo[data.mySocketId].gameSocket;
 
         // Look up the room ID in the Socket.IO manager object.
         let room = gameSocket.manager.rooms["/" + data.gameId];
 
-        clientInfo[data.playerId].room = data.gameId;
-        clientInfo[data.playerId].playerName = data.playerName;
-
-        currentRooms[data.gameId].players.push(clientInfo[data.playerId]);
-
         // If the room exists...
-        if( room != undefined && currentRooms[data.gameId].players.length < 6){
-            // attach the socket id to the data object.
-            data.mySocketId = sock.id;
-
-            // Join the room
-            sock.join(data.gameId);
-
-            console.log('Player ' + data.playerName + ' joining game: ' + data.gameId );
-
-            // Emit an event notifying the clients that the player has joined the room.
-            let message = {
-                update: `newPlayer`,
-                game: currentRooms[data.gameId]
+        if( room != undefined && !mngr.hlpFn.isUndefined(currentRooms[data.gameId]) && currentRooms[data.gameId].players.length < 6){
+            let nameExistsInRoom = false;
+            for(let i = 0; i < currentRooms[data.gameId].players.length; i++) {
+                if(currentRooms[data.gameId].players[i].playerName === data.playerName) {
+                    nameExistsInRoom = true;
+                }
             }
-            sendRefresh(data.gameId, 'playerJoinedRoom', refreshPlayerList(data.gameId, data.playerName, `newPlayer`));
+
+            if(!nameExistsInRoom) {
+                clientInfo[data.mySocketId].room = data.gameId;
+                clientInfo[data.mySocketId].playerName = data.playerName;
+        
+                currentRooms[data.gameId].players.push(clientInfo[data.mySocketId]);
+                
+                // attach the socket id to the data object.
+                data.mySocketId = sock.id;
+    
+                // Join the room
+                sock.join(data.gameId);
+    
+                console.log('Player ' + data.playerName + ' joining game: ' + data.gameId );
+    
+                // Emit an event notifying the clients that the player has joined the room.
+                let message = {
+                    update: `newPlayer`,
+                    game: currentRooms[data.gameId]
+                }
+                sendRefresh(data.gameId, 'playerJoinedRoom', refreshPlayerList(data.gameId, data.playerName, `newPlayer`));
+            } else {
+                gameSocket.emit(`error`, {message: `This room already has a player with that name.  Please choose a new name.`});
+            }
         } else {
             // Otherwise, send an error message back to the player.
             gameSocket.emit('error',{message: "This room does not exist or is full."} );
