@@ -316,7 +316,7 @@ let playerEvents = {
         let sock = clientInfo[data.mySocketId].gameSocket;
 
         // Look up the room ID in the Socket.IO manager object.
-        let room = gameSocket.manager.rooms["/" + data.gameId];
+        let room = sock.manager.rooms["/" + data.gameId];
 
         // If the room exists...
         if( room != undefined && !mngr.hlpFn.isUndefined(currentRooms[data.gameId]) && currentRooms[data.gameId].players.length < 6){
@@ -348,11 +348,11 @@ let playerEvents = {
                 }
                 sendRefresh(data.gameId, 'playerJoinedRoom', refreshPlayerList(data.gameId, data.playerName, `newPlayer`));
             } else {
-                gameSocket.emit(`error`, {message: `This room already has a player with that name.  Please choose a new name.`});
+                sock.emit(`error`, {message: `This room already has a player with that name.  Please choose a new name.`});
             }
         } else {
             // Otherwise, send an error message back to the player.
-            gameSocket.emit('error',{message: "This room does not exist or is full."} );
+            sock.emit('error',{message: "This room does not exist or is full."} );
         }
         //printAllPlayers();
     },
