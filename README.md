@@ -1,3 +1,8 @@
+# Notice about the contents of this game
+Cards Against Humanity is distributed under a [Creative Commons BY-NC-SA 2.0 license](https://creativecommons.org/licenses/by-nc-sa/2.0/)
+
+
+
 # Unnamed Phone-TV Game
 A multi-player, multi-screen game built to experiment with Socket.IO and Node.js.
 
