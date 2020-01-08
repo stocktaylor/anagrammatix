@@ -1,5 +1,15 @@
 var App = {
 
+    initPlatformTweaks: () => {
+        if(navigator.userAgent.match(/Android/i)){
+            //Android specific things
+            alert(`Android`);
+        } else if(navigator.userAgent.match(/iPhone/i)) {
+            //iPhone specific things
+            alert(`iPhone`);
+        }
+    },
+
     listeners : {
         pageResize: () => {
             window.onresize = () =>{
@@ -102,6 +112,7 @@ var App = {
      * This runs when the page initially loads.
      */
     init: () => {
+        App.initPlatformTweaks();
         App.initListeners();
         App.cacheElements();
         App.showInitScreen();
@@ -147,76 +158,8 @@ var App = {
         App.views.introView();
     },
 
-    htmlElements: {
-        whiteCard: (id, content) => {
-            let card = document.createElement(`DIV`);
-            let cardText = document.createElement(`DIV`);
+    currentInteractables: {
 
-            card.id = id;
-            cardText.id = id + `Text`;
-            cardText.innerHTML = content;
-
-            card.style.cssText = `
-                width: 500px;
-                max-width: 500px;
-                height: 700px;
-                max-height: 700px;
-                border-radius: 50px;
-                color: black;
-                background-color: white;
-                justify-content: flex-start;
-                align-items: flex-start;
-                text-align: left;
-                box-shadow: 10px 10px 5px grey;
-                margin: 50px;
-            `;
-
-            cardText.style.cssText = `
-                width: 380px;
-                height: 580px;
-                padding: 60px;
-                font-size: 42px;
-            `;
-
-            card.appendChild(cardText);
-
-            return card;
-        },
-
-        blackCard: (id, content) => {
-            let card = document.createElement(`DIV`);
-            let cardText = document.createElement(`DIV`);
-
-            card.id = id;
-            cardText.id = id + `Text`;
-            cardText.innerHTML = content;
-
-            card.style.cssText = `
-                width: 500px;
-                max-width: 500px;
-                height: 700px;
-                max-height: 700px;
-                border-radius: 50px;
-                color: white;
-                background-color: black;
-                justify-content: flex-start;
-                align-items: flex-start;
-                text-align: left;
-                box-shadow: 10px 10px 5px grey;
-                margin: 50px;
-            `;
-
-            cardText.style.cssText = `
-                width: 380px;
-                height: 580px;
-                padding: 60px;
-                font-size: 42px;
-            `;
-
-            card.appendChild(cardText);
-
-            return card;
-        }
     },
 
     settings: {
@@ -236,6 +179,18 @@ var App = {
             },
             execute: () => {
                 alert(`ToDo: Show Dev Mode`);
+            }
+        },
+        alertUserAgent: {
+            display: "Show me my User Agent",
+            canShow: () => {
+                return true;
+            },
+            execute: (cardElem) => {
+                console.log(cardElem);
+                cardElem.cardText.style.display = undefined;
+                cardElem.cntrBox.style.display = `none`;
+                cardElem.cardText.innerHTML = navigator.userAgent;
             }
         }
     },
@@ -260,18 +215,25 @@ var App = {
             for(let i = 0; i < scrollWrappers.length; i++) {
                 screenRatio = window.innerWidth/window.innerHeight;
                 cardRatio = 500/700;
-                // if(screenRatio > cardRatio) {
-                //     App.hlpFn.fitToScreenHeight(dblButtonBoxes[i], 800);
-                // }
+                if(screenRatio > cardRatio) {
+                    App.hlpFn.fitToScreenHeight(scrollWrappers[i], 800);
+                }
                 App.hlpFn.fitToScreenWidth(scrollWrappers[i], 600);
             }
             document.getElementById(`settingsButton`).innerHTML = `Back`;
             for(const key in App.settings) {
                 let currentSetting = App.settings[key];
                 if(currentSetting.canShow()) {
-                    let card = App.htmlElements.whiteCard(key, currentSetting.display)
-                    card.addEventListener(`click`, currentSetting.execute);
-                    document.getElementById(`scrollElem`).appendChild(card);
+                    let cardElem = html.htmlElements.whiteCard(key, currentSetting.display);
+                    cardElem.card.addEventListener(`click`, () => {
+                        cardElem.cardText.style.display = `none`;
+                        cardElem.cntrBox.style.display = `flex`;
+                    });
+                    cardElem.cnfmBttn.addEventListener(`click`, () => {
+                        navigator.vibrate(100);
+                        currentSetting.execute(cardElem);
+                    });
+                    document.getElementById(`scrollElem`).appendChild(cardElem.card);
                 }
             }
         },
@@ -313,9 +275,9 @@ var App = {
             let scroller = document.getElementById(`scrollElem`);
             if(App.players[0].id == App.mySocketId) {
                 if(App.players.length < 3) {
-                    scroller.appendChild(App.htmlElements.blackCard(`titleCard`, `Need at least 3 players before the game can start...`));
+                    scroller.appendChild(html.htmlElements.blackCard(`titleCard`, `Need at least 3 players before the game can start...`));
                 } else {
-                    let card = App.htmlElements.blackCard(`titleCard`, `Click to start game`);
+                    let card = html.htmlElements.blackCard(`titleCard`, `Click to start game`);
                     card.addEventListener(`click`, () => {
                         App.Player.leaderStartGame();
                     });
@@ -323,10 +285,10 @@ var App = {
                 }
             } else {
                 App.views.updateHeader(`Waiting for the game to start...`);
-                //scroller.appendChild(App.htmlElements.blackCard(`titleCard`, `Waiting for first player to start the game...`));
+                //scroller.appendChild(html.htmlElements.blackCard(`titleCard`, `Waiting for first player to start the game...`));
             }
             for(let i = 0; i < App.players.length; i++) {
-                scroller.appendChild(App.htmlElements.whiteCard(`player` + i, App.players[i].playerName));
+                scroller.appendChild(html.htmlElements.whiteCard(`player` + i, App.players[i].playerName));
             }
         },
         popUpMessage: (message) => {

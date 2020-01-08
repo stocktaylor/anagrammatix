@@ -226,7 +226,7 @@ function printAllPlayers() {
     for(const key in clientInfo) {
         let thisInfo = clientInfo[key];
         if(!mngr.hlpFn.isUndefined(thisInfo)){
-            console.log({id: thisInfo.id, playerName: thisInfo.playerName, room: thisInfo.room, answerCards: thisInfo.answerCards});
+            console.log({id: thisInfo.id, playerName: thisInfo.playerName, room: thisInfo.room, answerCards: thisInfo.answerCards, questionCard: thisInfo.questionCard});
         }
     }
 }
@@ -254,14 +254,29 @@ function initGame(gameId) {
 function beginRound(gameId) {
     getRoomByGameId(gameId).then((room) => {
         if(room.QUserIndex >= room.players.length) {
+            console.log(`player with last index had Q Card, resetting index to 0`)
             room.QUserIndex = 0;
         }
         if(room.players.length > 0) {
+            console.log(`about to give player with index ` + room.QUserIndex + ` a new Q card`);
+            console.log(`FYI, that player is named ` + room.players[room.QUserIndex].playerName);
+
+            for(let i = 0; i < room.players.length; i++) {
+                room.players[i].questionCard = undefined;
+            } 
+
             room.players[room.QUserIndex].questionCard = getAndRemoveNewQuestion(gameId);
 
             room.currentQuestion = room.players[room.QUserIndex].questionCard;
+            
+            console.log(`Question: ` + room.players[room.QUserIndex].questionCard);
+
+            console.log(`player should now have a current question.  But hey, just to make sure, I'll print out the player stack`);
 
             printAllPlayers();
+        } else {
+            console.log(`Well this is awkward...`);
+            console.log(`Server was told to begin a new round, but the number of players is 0...`);
         }
     }).catch((reason) => {
         console.log(reason);
@@ -272,6 +287,7 @@ function getAndRemoveNewQuestion(gameId) {
     let index = Math.floor(Math.random() * currentRooms[gameId].Questions.length);
     let string = currentRooms[gameId].Questions[index];
     currentRooms[gameId].Questions.splice(index, 1);
+    console.log(`returning question "` + string + `"`);
     return string;
 }
 
