@@ -163,8 +163,19 @@ var App = {
     },
 
     settings: {
+        about: {
+            display: "About this game",
+            renderFunc: html.htmlElements.blackCard,
+            canShow: () => {
+                return true;
+            },
+            execute: () => {
+                App.views.aboutView();
+            }
+        },
         requestControl: {
             display: "Request Control",
+            renderFunc: html.htmlElements.whiteCard,
             canShow: () => {
                 return true;
             },
@@ -174,6 +185,7 @@ var App = {
         },
         enableDevMode: {
             display: "Developer Mode",
+            renderFunc: html.htmlElements.whiteCard,
             canShow: () => {
                 return true;
             },
@@ -181,14 +193,14 @@ var App = {
                 alert(`ToDo: Show Dev Mode`);
             }
         },
-        alertUserAgent: {
+        showUserAgent: {
             display: "Show me my User Agent",
+            renderFunc: html.htmlElements.whiteCard,
             canShow: () => {
                 return true;
             },
             execute: (cardElem) => {
-                console.log(cardElem);
-                cardElem.cardText.style.display = undefined;
+                cardElem.cardText.style.display = null;
                 cardElem.cntrBox.style.display = `none`;
                 cardElem.cardText.innerHTML = navigator.userAgent;
             }
@@ -221,21 +233,59 @@ var App = {
                 App.hlpFn.fitToScreenWidth(scrollWrappers[i], 600);
             }
             document.getElementById(`settingsButton`).innerHTML = `Back`;
+
+            let page = document.getElementById(`scrollElem`);
+            page.notifyChildren = () => {
+                alert(`init child notify reference`);
+            };
             for(const key in App.settings) {
                 let currentSetting = App.settings[key];
                 if(currentSetting.canShow()) {
-                    let cardElem = html.htmlElements.whiteCard(key, currentSetting.display);
-                    cardElem.card.addEventListener(`click`, () => {
-                        cardElem.cardText.style.display = `none`;
-                        cardElem.cntrBox.style.display = `flex`;
+                    let settingHTML = currentSetting.renderFunc(key, currentSetting.display);
+
+                    settingHTML.card.addEventListener(`click`, (event) => {
+                        if(!(event.srcElement === settingHTML.cnfmBttn)) {
+                            //show confirm button
+                            if(settingHTML.cnfmMode) {
+                                settingHTML.cardText.style.display = null;
+                                settingHTML.cntrBox.style.display = `none`;
+                                settingHTML.cnfmMode = false;
+                            } else { //show text
+                                settingHTML.cardText.style.display = `none`;
+                                settingHTML.cntrBox.style.display = `flex`;
+                                settingHTML.cnfmMode = true;
+                            }
+                        }
+
                     });
-                    cardElem.cnfmBttn.addEventListener(`click`, () => {
+                    settingHTML.cnfmBttn.addEventListener(`click`, () => {
                         navigator.vibrate(100);
-                        currentSetting.execute(cardElem);
+                        currentSetting.execute(settingHTML);
+                        settingHTML.cardText.style.display = null;
+                        settingHTML.cntrBox.style.display = `none`;
+                        settingHTML.cnfmMode = false;
                     });
-                    document.getElementById(`scrollElem`).appendChild(cardElem.card);
+                    page.appendChild(settingHTML.card);
                 }
             }
+        },
+
+        aboutView: () => {
+            App.stateInfo.settingsOpen = true;
+            App.realEstate.innerHTML = App.scrollCardView;
+            let scrollWrappers = document.getElementsByClassName(`v-scroll-wrapper`);
+            for(let i = 0; i < scrollWrappers.length; i++) {
+                screenRatio = window.innerWidth/window.innerHeight;
+                cardRatio = 500/700;
+                if(screenRatio > cardRatio) {
+                    App.hlpFn.fitToScreenHeight(scrollWrappers[i], 800);
+                }
+                App.hlpFn.fitToScreenWidth(scrollWrappers[i], 600);
+            }
+            document.getElementById(`settingsButton`).innerHTML = `Back`;
+
+            let aboutHTML = html.htmlElements.blackCardAnyHeight(`about`, `This is a test of the About Card`);
+            document.getElementById(`scrollElem`).appendChild(aboutHTML.card);
         },
 
         createHost: () => {
