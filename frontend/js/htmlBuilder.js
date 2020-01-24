@@ -31,6 +31,7 @@ var html = {
                 height: 580px;
                 padding: 60px;
                 font-size: 42px;
+                word-wrap: break-word;
             `;
 
             cntrBox.style.cssText = `

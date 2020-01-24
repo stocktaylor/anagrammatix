@@ -3,12 +3,18 @@ var App = {
     initPlatformTweaks: () => {
         if(navigator.userAgent.match(/Android/i)){
             //Android specific things
-            alert(`Android`);
+            if(App.cfg.debug) {
+                alert(`Android`);
+            }
         } else if(navigator.userAgent.match(/iPhone/i)) {
             //iPhone specific things
-            alert(`iPhone`);
+            if(App.cfg.debug) {
+                alert(`iPhone`);
+            }
         }
     },
+
+    cfg: {},
 
     listeners : {
         pageResize: () => {
@@ -19,18 +25,19 @@ var App = {
             }
         },
         settingsClick: () => {
-            document.getElementById(`settingsButton`).addEventListener(`click`, () => {
-                if(App.stateInfo.settingsOpen) {
-                    if(App.hlpFn.isFunction(App.views[App.stateInfo.currentView])) {
-                        App.views[App.stateInfo.currentView]();
-                        document.getElementById(`settingsButton`).innerHTML = `Settings`;
-                    } else {
-                        alert(`Fatal Error! Current view set in state info does not reference a view enable function`);
-                    }
-                } else {
-                    App.views.settingsView();
-                }
-            });
+            App.vc.setTopLeft(App.views.settingsView, `Settings`);
+            // document.getElementById(`settingsButton`).addEventListener(`click`, () => {
+            //     if(App.stateInfo.settingsOpen) {
+            //         if(App.hlpFn.isFunction(App.views[App.stateInfo.currentView])) {
+            //             App.views[App.stateInfo.currentView]();
+            //             document.getElementById(`settingsButton`).innerHTML = `Settings`;
+            //         } else {
+            //             alert(`Fatal Error! Current view set in state info does not reference a view enable function`);
+            //         }
+            //     } else {
+            //         App.views.settingsView();
+            //     }
+            // });
             
         }
     },
@@ -104,6 +111,8 @@ var App = {
         currentView: `introView`
     },
 
+    vc: undefined,
+
     /* *************************************
      *                Setup                *
      * *********************************** */
@@ -112,11 +121,24 @@ var App = {
      * This runs when the page initially loads.
      */
     init: () => {
-        App.initPlatformTweaks();
-        App.initListeners();
-        App.cacheElements();
-        App.showInitScreen();
-        App.bindEvents();
+        App.getCnfg().then((result) => {
+            App.vc = new vc();
+            
+            App.initPlatformTweaks();
+            App.initListeners();
+            App.cacheElements();
+            App.showInitScreen();
+            App.bindEvents();
+        }).catch((reason) => {
+            console.error(reason);
+            alert(`Cnfg fetch failed.  Reload page`)
+        });
+    },
+
+    getCnfg: () => {
+        return new Promise((resolve, reject) =>{
+            resolve();
+        });
     },
 
     /**
@@ -232,7 +254,20 @@ var App = {
                 }
                 App.hlpFn.fitToScreenWidth(scrollWrappers[i], 600);
             }
-            document.getElementById(`settingsButton`).innerHTML = `Back`;
+
+
+
+            //document.getElementById(`settingsButton`).innerHTML = `Back`;
+            App.vc.setTopLeft(() => {
+                
+                if(App.hlpFn.isFunction(App.views[App.stateInfo.currentView])) {
+                    App.views[App.stateInfo.currentView]();
+                    App.vc.setTopLeft(App.views.settingsView, `Settings`);
+                    //document.getElementById(`settingsButton`).innerHTML = `Settings`;
+                } else {
+                    alert(`Fatal Error! Current view set in state info does not reference a view enable function`);
+                }
+            }, `Back`).then(() => {}).catch((err) => {console.log(err)});
 
             let page = document.getElementById(`scrollElem`);
             page.notifyChildren = () => {

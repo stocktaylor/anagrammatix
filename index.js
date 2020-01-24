@@ -45,6 +45,9 @@ mngr.init().then(() => {
                 case `sysInfo`: 
                     response.send(sysInfoAPI.getFullSysInfoJSON());
                     break;
+                case `getClientCnfg`:
+                    response.send(sysInfoAPI.getClientCnfg());
+                    break;
                 default:
                     response.send(
                         {

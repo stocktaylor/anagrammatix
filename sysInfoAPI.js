@@ -9,3 +9,10 @@ exports.getFullSysInfoJSON = () => {
         cpus: os.cpus()
     }
 }
+
+
+exports.getClientCnfg = () => {
+    let cnfgJSON = {debugMode: true};
+
+    return cnfgJSON;
+}
