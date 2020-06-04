@@ -12,25 +12,25 @@ var html = {
             cardText.innerHTML = content;
 
             card.style.cssText = `
-                width: 500px;
-                max-width: 500px;
-                height: 700px;
-                max-height: 700px;
-                border-radius: 50px;
+                width: 125px;
+                max-width: 125px;
+                height: 175px;
+                max-height: 175px;
+                border-radius: 12.5px;
                 color: black;
                 background-color: white;
                 justify-content: flex-start;
                 align-items: flex-start;
                 text-align: left;
-                box-shadow: 10px 10px 5px grey;
-                margin: 50px;
+                box-shadow: 2.5px 2.5px 1.25px grey;
+                margin: 12.5px;
             `;
 
             cardText.style.cssText = `
-                width: 380px;
-                height: 580px;
-                padding: 60px;
-                font-size: 42px;
+                width: 95px;
+                height: 145px;
+                padding: 15px;
+                font-size: 10.5px;
                 word-wrap: break-word;
             `;
 
@@ -43,7 +43,7 @@ var html = {
             `;
 
             cnfmBttn.classList.add(`btn`);
-            cnfmBttn.style.height = `120px`;
+            cnfmBttn.style.height = `30px`;
             cnfmBttn.innerHTML = `Confirm`;
 
             card.appendChild(cardText);
@@ -71,25 +71,25 @@ var html = {
             cardText.innerHTML = content;
 
             card.style.cssText = `
-                width: 500px;
-                max-width: 500px;
-                height: 700px;
-                max-height: 700px;
-                border-radius: 50px;
+                width: 125px;
+                max-width: 125px;
+                height: 175px;
+                max-height: 175px;
+                border-radius: 12.5px;
                 color: white;
                 background-color: black;
                 justify-content: flex-start;
                 align-items: flex-start;
                 text-align: left;
-                box-shadow: 10px 10px 5px grey;
-                margin: 50px;
+                box-shadow: 2.5px 2.5px 1.25px grey;
+                margin: 12.5px;
             `;
 
             cardText.style.cssText = `
-                width: 380px;
-                height: 580px;
-                padding: 60px;
-                font-size: 42px;
+                width: 95px;
+                height: 145px;
+                padding: 15px;
+                font-size: 10.5px;
             `;
 
             cntrBox.style.cssText = `
@@ -101,7 +101,7 @@ var html = {
             `;
 
             cnfmBttn.classList.add(`btn`);
-            cnfmBttn.style.height = `120px`;
+            cnfmBttn.style.height = `30px`;
             cnfmBttn.style.color = `black`;
             cnfmBttn.innerHTML = `Confirm`;
 

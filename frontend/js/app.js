@@ -1,16 +1,29 @@
 var App = {
 
+    operatingSystem: undefined,
+    browser: undefined,
+
     initPlatformTweaks: () => {
         if(navigator.userAgent.match(/Android/i)){
             //Android specific things
+            App.operatingSystem = `Android`;
             if(App.cfg.debug) {
                 alert(`Android`);
             }
         } else if(navigator.userAgent.match(/iPhone/i)) {
             //iPhone specific things
+            App.operatingSystem = `iPhone`;
             if(App.cfg.debug) {
                 alert(`iPhone`);
             }
+        }
+
+        if(navigator.userAgent.match(/edgA/i)) {
+            App.browser = `EdgeCr`;
+        } else if(navigator.userAgent.match(/Chrome/i)) {
+            App.browser = `Chrome`;
+        } else if(navigator.userAgent.match(/Safari/i)) {
+            App.browser = `Safari`;
         }
     },
 
@@ -250,9 +263,10 @@ var App = {
                 screenRatio = window.innerWidth/window.innerHeight;
                 cardRatio = 500/700;
                 if(screenRatio > cardRatio) {
-                    App.hlpFn.fitToScreenHeight(scrollWrappers[i], 800);
+                    App.hlpFn.fitToScreenHeight(scrollWrappers[i], 200);
+                } else {
+                    App.hlpFn.fitToScreenWidth(scrollWrappers[i], 150);
                 }
-                App.hlpFn.fitToScreenWidth(scrollWrappers[i], 600);
             }
 
 
@@ -294,7 +308,9 @@ var App = {
 
                     });
                     settingHTML.cnfmBttn.addEventListener(`click`, () => {
-                        navigator.vibrate(100);
+                        if(App.operatingSystem === `Android` && (App.browser === `Chrome` || App.browser === `EdgeCr`)) {
+                            navigator.vibrate(100);
+                        }
                         currentSetting.execute(settingHTML);
                         settingHTML.cardText.style.display = null;
                         settingHTML.cntrBox.style.display = `none`;
